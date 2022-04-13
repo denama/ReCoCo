@@ -53,6 +53,7 @@ class Gym(object):
             del self.gym_conn
         if self.gym_process:
             del self.gym_process
+        print("Trace path: ", trace_path)
         self.gym_process = gym_process.GymProcess(
             self.gym_id,
             trace_path,

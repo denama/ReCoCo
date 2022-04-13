@@ -56,7 +56,9 @@ class GymEnv:
 
     def reset(self):
         self.gym_env = gym_file.Gym()
-        self.gym_env.reset(trace_path=random.choice(self.trace_set),
+        current_trace = random.choice(self.trace_set)
+        print("Current trace: ", current_trace)
+        self.gym_env.reset(trace_path=current_trace,
             report_interval_ms=self.step_time,
             duration_time_ms=0)
         self.packet_record = PacketRecord()
@@ -66,6 +68,7 @@ class GymEnv:
     def step(self, action):
         # action: log to linear
         bandwidth_prediction = log_to_linear(action)
+        print("Bandwidth prediction in rtc_env.step(action): ", bandwidth_prediction)
 
         # run the action
         packet_list, done = self.gym_env.step(bandwidth_prediction)
