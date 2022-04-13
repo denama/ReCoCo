@@ -1,0 +1,55 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+    - "*"
+
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+
+steps:
+- checkout: self
+
+- script: make init
+  displayName: 'Build environment'
+
+- script: make sync
+  displayName: 'Sync dependencies'
+
+- script: make gym
+  displayName: 'Build gym'
+
+- script: |
+    sudo apt install -qq -y libzmq5 python3 python3-pip
+    python3 -m pip install -r requirements.txt
+  displayName: 'Install runtime dependencies'
+
+- script: python3 -m pytest alphartc_gym
+  displayName: 'Run test'
+
+- publish: $(System.DefaultWorkingDirectory)/target
+  continueOnError: true
+  artifact: target
+  displayName: "Archive alphartc gym"
+
+- script: tar -cvzf target.tar.gz target
+  displayName: 'Compress target'
+
+- task: GitHubRelease@0
+  inputs:
+    gitHubConnection: 'Pterosaur (1)'
+    repositoryName: '$(Build.Repository.Name)'
+    action: 'create'
+    tagSource: manual
+    tag: $(Build.BuildNumber)
+    title: target
+    assets: 'target.tar.gz'
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+  displayName: "Release target"

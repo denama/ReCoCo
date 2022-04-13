@@ -1,0 +1,43 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+    - "*"
+
+
+pool:
+  vmImage: "ubuntu-latest"
+
+
+steps:
+- checkout: self
+  submodules: true
+
+- script: |
+    sudo apt install -qq -y libzmq5 python3 python3-pip
+    python3 -m pip install -r gym/requirements.txt
+  displayName: "Install Gym runtime dependencies"
+
+- script: python3 -m pip install -r requirements.txt
+  displayName: "Install exmaple dependencies"
+
+- task: DownloadPipelineArtifact@2
+  inputs:
+    source: specific
+    project: ONL-github
+    pipeline: 6
+    artifact: target
+    runVersion: "latestFromBranch"
+    runBranch: "refs/heads/master"
+    path: "gym/target"
+  displayName: "Download Gym target"
+
+- script: chmod 777 gym/target/gym
+  displayName: "Grand execute permission to gym"
+
+- script: python3 main.py
+  displayName: "Run main"

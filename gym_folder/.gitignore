@@ -1,0 +1,5 @@
+.vscode/*
+target/*
+traces/*
+**/__pycache__/*
+.idea/
