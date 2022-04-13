@@ -4,5 +4,5 @@ __pycache__
 *.pth
 .idea/
 !pretrained_model.pth
-simulation_analysis/outputs/
+./simulation_analysis/outputs/
 .ipynb_checkpoints/

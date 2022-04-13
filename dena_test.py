@@ -24,7 +24,6 @@ import os
 import signal
 
 __ROOT_PATH__ = os.path.dirname(os.path.abspath(__file__))
-print(__ROOT_PATH__)
 __GYM_PROCESS_PATH__ = os.path.join(__ROOT_PATH__, "gym_folder", "target", "gym")
 
 
@@ -44,12 +43,14 @@ class GymProcessDena(object):
         if duration_time_ms:
             process_args.append("--duration_time_ms="+str(duration_time_ms))
 
+        print("TRACE PATH", trace_path)
+        print("COMMAND", process_args)
         output_folder = os.path.join(__ROOT_PATH__, "simulation_analysis", "outputs")
         output_file_name = os.path.basename(trace_path).split(".")[0]
         out_full_path = os.path.join(output_folder, f'{output_file_name}_duration_{duration_time_ms}_output.txt')
         outfile = open(out_full_path, 'w')
         self.gym = subprocess.Popen(process_args, stdout=outfile, shell=True)
-        print(type(self.gym))
+
 
     def wait(self, timeout = None):
         return self.gym.wait(timeout)
@@ -62,6 +63,8 @@ class GymProcessDena(object):
 
 if __name__ == "__main__":
 
-    trace_file = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/trace_example.json"
+    # trace_file = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/trace_example.json"
+    # trace_file = "/home/dena/Documents/Gym_RTC/gym-example/traces/trace_200k.json"
+    trace_file = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/5G_12mbps.json"
 
     prc = GymProcessDena(trace_path=trace_file)
