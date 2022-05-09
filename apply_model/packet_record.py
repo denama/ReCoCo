@@ -6,7 +6,7 @@ import numpy as np
 
 class PacketRecord:
     # feature_interval can be modified
-    def __init__(self, base_delay_ms=200):
+    def __init__(self, base_delay_ms=0):
         self.base_delay_ms = base_delay_ms
         self.reset()
 
@@ -40,9 +40,10 @@ class PacketRecord:
 
         # Calculate packet delay
         if self.timer_delta is None:
-            # shift delay of the first packet to base delay
+             # shift delay of the first packet to base delay
             self.timer_delta = self.base_delay_ms - (packet_info.receive_timestamp - packet_info.send_timestamp)
-        delay = self.timer_delta + (packet_info.receive_timestamp - packet_info.send_timestamp)
+        delay = self.timer_delta + packet_info.receive_timestamp - packet_info.send_timestamp
+
         self.min_seen_delay = min(delay, self.min_seen_delay)
         
         # Check the last interval rtime
@@ -73,7 +74,6 @@ class PacketRecord:
         while index >= 0 and self.packet_list[index]['timestamp'] > start_time:
             result_list.append(self.packet_list[index][key])
             index -= 1
-
         return result_list
 
     def calculate_average_delay(self, interval=0):
@@ -84,8 +84,8 @@ class PacketRecord:
         '''
         delay_list = self._get_result_list(interval=interval, key='delay')
         if delay_list:
-            # print("Delay list ", delay_list, "base delay ", self.base_delay_ms)
             return np.mean(delay_list) - self.base_delay_ms
+            # return np.mean(delay_list)
         else:
             return 0
 
@@ -96,11 +96,9 @@ class PacketRecord:
         The unit of return value: packet/packet
         '''
         loss_list = self._get_result_list(interval=interval, key='loss_count')
-        # print(f"Loss list: {loss_list}")
         if loss_list:
             loss_num = np.sum(loss_list)
             received_num = len(loss_list)
-            # print(f"Num lost {loss_num}, num received {received_num}, loss rate {loss_num / (loss_num + received_num)}")
             return loss_num / (loss_num + received_num)
         else:
             return 0
@@ -109,17 +107,15 @@ class PacketRecord:
         '''
         Calulate the receiving rate in the last interval time,
         interval=0 means based on the whole packets
-        interval is in ms
         The unit of return value: bps
         '''
         received_size_list = self._get_result_list(interval=interval, key='payload_byte')
         if received_size_list:
             received_nbytes = np.sum(received_size_list)
             if interval == 0:
-                interval = self.packet_list[-1]['timestamp'] - self.last_interval_rtime
-            rate_output_bps = 1000 * received_nbytes * 8 / interval
-            # print(f"Received {received_nbytes} Bytes in {interval} ms, so receiving rate is {rate_output_bps:.2f} bps or {(rate_output_bps / 1000):.2f} kbps")
-            return rate_output_bps
+                interval = self.packet_list[-1]['timestamp'] -\
+                    self.last_interval_rtime
+            return received_nbytes * 8 / interval * 1000
         else:
             return 0
 

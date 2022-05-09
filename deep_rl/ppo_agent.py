@@ -6,6 +6,7 @@ import numpy as np
 import time
 from torch import nn
 from .actor_critic import ActorCritic
+import logging
 
 
 class PPO:
@@ -70,4 +71,6 @@ class PPO:
         return episode_policy_loss / self.ppo_epoch, episode_value_loss / self.ppo_epoch
 
     def save_model(self, data_path):
-        torch.save(self.policy.state_dict(), '{}ppo_{}.pth'.format(data_path, time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())))
+        logging.info(f"Saving into PTH file: {self.policy.state_dict()}")
+        # torch.save(self.policy.state_dict(), '{}ppo_{}.pth'.format(data_path, time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())))
+        torch.save(self.policy.state_dict(), f"{data_path}ppo_{time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime())}.pth")

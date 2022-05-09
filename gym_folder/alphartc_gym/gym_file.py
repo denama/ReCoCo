@@ -7,6 +7,8 @@ from gym_folder.alphartc_gym import gym_process
 
 import os
 import uuid
+import logging
+
 
 class Gym(object):
     def __init__(self, gym_id: str = None):
@@ -43,7 +45,7 @@ class Gym(object):
                         ]
                     }
                 }
-            report_interfal_ms: to indicate the report interval. It indicates
+            report_interval_ms: to indicate the report interval. It indicates
                 the a step's duration, the unit is Millisecond.
             duration_time_ms: to indicate the duration for an epoch.
                 If this value is None or 0, the duration will be caculated
@@ -53,7 +55,7 @@ class Gym(object):
             del self.gym_conn
         if self.gym_process:
             del self.gym_process
-        print("Trace path: ", trace_path)
+        logging.info(f"Trace path: {trace_path}")
         self.gym_process = gym_process.GymProcess(
             self.gym_id,
             trace_path,

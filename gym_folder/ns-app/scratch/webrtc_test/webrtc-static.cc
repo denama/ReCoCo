@@ -23,7 +23,7 @@ using namespace std;
 
 NS_LOG_COMPONENT_DEFINE ("Webrtc-Static");
 
-const uint32_t TOPO_DEFAULT_BW     = 3000000;
+const uint32_t TOPO_DEFAULT_BW     = 3000000;  //3M bps
 const uint32_t TOPO_DEFAULT_PDELAY =100;
 const uint32_t TOPO_DEFAULT_QDELAY =300;
 const uint32_t DEFAULT_PACKET_SIZE = 1000;

@@ -43,28 +43,35 @@ class GymProcessDena(object):
         if duration_time_ms:
             process_args.append("--duration_time_ms="+str(duration_time_ms))
 
+        # process_args = [__GYM_PROCESS_PATH__, f"--gym_id={gym_id} --trace_path={trace_path} --report_interval_ms={report_interval_ms} --duration_time_ms={duration_time_ms}"]
+
         print("TRACE PATH", trace_path)
-        print("COMMAND", process_args)
+        print("COMMAND", " ".join(process_args))
         output_folder = os.path.join(__ROOT_PATH__, "simulation_analysis", "outputs")
         output_file_name = os.path.basename(trace_path).split(".")[0]
         out_full_path = os.path.join(output_folder, f'{output_file_name}_duration_{duration_time_ms}_output.txt')
         outfile = open(out_full_path, 'w')
-        self.gym = subprocess.Popen(process_args, stdout=outfile, shell=True)
+        # o, e = subprocess.Popen(" ".join(process_args), stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, errors="ignore").communicate()
+        # print(o)
+
+        self.gym = subprocess.Popen(" ".join(process_args), stdout=outfile, shell=True)
 
 
-    def wait(self, timeout = None):
-        return self.gym.wait(timeout)
 
-    def __del__(self):
-        self.gym.send_signal(signal.SIGINT)
-        self.gym.send_signal(signal.SIGKILL)
+
+    # def wait(self, timeout = None):
+    #     return self.gym.wait(timeout)
+    #
+    # def __del__(self):
+    #     self.gym.send_signal(signal.SIGINT)
+    #     self.gym.send_signal(signal.SIGKILL)
 
 
 
 if __name__ == "__main__":
 
-    # trace_file = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/trace_example.json"
+    trace_file = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/trace_example.json"
     # trace_file = "/home/dena/Documents/Gym_RTC/gym-example/traces/trace_200k.json"
-    trace_file = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/5G_12mbps.json"
+    # trace_file = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/5G_12mbps.json"
 
     prc = GymProcessDena(trace_path=trace_file)
