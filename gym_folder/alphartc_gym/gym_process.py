@@ -26,7 +26,7 @@ class GymProcess(object):
         if duration_time_ms:
             process_args.append("--duration_time_ms="+str(duration_time_ms))
 
-        logging.info("NEW POPEN")
+        # logging.info("NEW POPEN")
         self.gym = subprocess.Popen(process_args)
 
     def wait(self, timeout = None):

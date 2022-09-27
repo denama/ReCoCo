@@ -38,7 +38,7 @@ def draw_module(model, data_path, max_num_steps = 1000):
     model.random_action = False
     while time_step < max_num_steps:
         done = False            
-        state = torch.Tensor(env.reset())
+        state = torch.Tensor(env.reset(training=True))
         while not done:
             action, _, _ = model.forward(state)
             state, reward, done, _ = env.step(action)

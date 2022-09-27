@@ -55,7 +55,7 @@ class Gym(object):
             del self.gym_conn
         if self.gym_process:
             del self.gym_process
-        logging.info(f"Trace path: {trace_path}")
+        # logging.info(f"Trace path: {trace_path}")
         self.gym_process = gym_process.GymProcess(
             self.gym_id,
             trace_path,
@@ -98,6 +98,7 @@ class Gym(object):
                 True means this epoch is done.
         """
         stats = self.gym_conn.step(bandwidth_bps)
+        # stats = self.gym_conn.step(1000000)
         if stats != None:
             return stats, False
         return [], True

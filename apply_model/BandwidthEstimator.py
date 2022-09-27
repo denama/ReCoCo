@@ -1,50 +1,54 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from deep_rl.ppo_agent import PPO
 import torch
-from packet_info import PacketInfo
-from packet_record import PacketRecord
-from BandwidthEstimator_gcc import GCCEstimator
+import numpy as np
+from gym_folder.alphartc_gym.utils.packet_info import PacketInfo
+from gym_folder.alphartc_gym.utils.packet_record import PacketRecord
+from apply_model.deep_rl_apply.actor_critic import ActorCritic
+
+
+UNIT_M = 1000000
+MAX_BANDWIDTH_MBPS = 8
+MIN_BANDWIDTH_MBPS = 0.01
+LOG_MAX_BANDWIDTH_MBPS = np.log(MAX_BANDWIDTH_MBPS)
+LOG_MIN_BANDWIDTH_MBPS = np.log(MIN_BANDWIDTH_MBPS)
+
+
+def liner_to_log(value):
+    # from 10kbps~8Mbps to 0~1
+    value = np.clip(value / UNIT_M, MIN_BANDWIDTH_MBPS, MAX_BANDWIDTH_MBPS)
+    log_value = np.log(value)
+    return (log_value - LOG_MIN_BANDWIDTH_MBPS) / (LOG_MAX_BANDWIDTH_MBPS - LOG_MIN_BANDWIDTH_MBPS)
+
+
+def log_to_linear(value):
+    # from 0~1 to 10kbps to 8Mbps
+    value = np.clip(value, 0, 1)
+    log_bwe = value * (LOG_MAX_BANDWIDTH_MBPS - LOG_MIN_BANDWIDTH_MBPS) + LOG_MIN_BANDWIDTH_MBPS
+    return np.exp(log_bwe) * UNIT_M
 
 
 class Estimator(object):
-    def __init__(self, model_path="../data/pretrained_model.pth", step_time=200):
-        '''
-        Import existing models
-        '''
-        # 1. Define model-related parameters
-        exploration_param = 0.05  # the std var of action distribution
-        K_epochs = 37  # update policy for K_epochs
-        ppo_clip = 0.2  # clip parameter of PPO
-        gamma = 0.99  # discount factor
-        lr = 3e-5  # Adam parameters
-        betas = (0.9, 0.999)
-        self.state_dim = 4
-        # self.state_length = 10
+    def __init__(self, model_path="./model/pretrained_model.pth", step_time=60):
+        # model parameters
+        state_dim = 4
         action_dim = 1
-
-
-        # 2. Load model
+        # the std var of action distribution
+        exploration_param = 0.05
+        # load model
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.ppo = PPO(self.state_dim, action_dim, exploration_param, lr, betas, gamma, K_epochs, ppo_clip)
-
-        self.ppo.policy.load_state_dict(torch.load('../data/ppo_2022_05_05_16_19_31_v2.pth'))
+        self.model = ActorCritic(state_dim, action_dim, exploration_param, self.device).to(self.device)
+        self.model.load_state_dict(torch.load(model_path))
+        # the model to get the input of model
         self.packet_record = PacketRecord()
         self.packet_record.reset()
         self.step_time = step_time
-        # 3. Initialization
-        self.state = torch.zeros((1, self.state_dim, self.state_length))
-        self.time_to_guide = False
-        self.counter = 0
-        self.bandwidth_prediction = 300000
-        self.gcc_estimator = GCCEstimator()
-        self.receiving_rate_list = []
-        self.delay_list = []
-        self.loss_ratio_list = []
-        self.bandwidth_prediction_list = []
-        self.overuse_flag = 'NORMAL'
-        self.overuse_distance = 5
-        self.last_overuse_cap = 1000000
+        # init
+        self.states = [0.0, 0.0, 0.0, 0.0]
+        torch_tensor_states = torch.FloatTensor(torch.Tensor(self.states).reshape(1, -1)).to(self.device)
+        self.action, action_logprobs, value = self.model.forward(torch_tensor_states)
+        self.bandwidth_prediction = log_to_linear(self.action)
+        self.last_call = "init"
 
     def report_states(self, stats: dict):
         '''
@@ -60,6 +64,8 @@ class Estimator(object):
             "payload_size": uint
         }
         '''
+        self.last_call = "report_states"
+        # clear data
         packet_info = PacketInfo()
         packet_info.payload_type = stats["payload_type"]
         packet_info.ssrc = stats["ssrc"]
@@ -72,55 +78,26 @@ class Estimator(object):
         packet_info.bandwidth_prediction = self.bandwidth_prediction
 
         self.packet_record.on_receive(packet_info)
-        self.gcc_estimator.report_states(stats)
 
     def get_estimated_bandwidth(self)->int:
-        '''
-        Calculate estimated bandwidth
-        '''
-        # 1. Calculate state
-        self.receiving_rate = self.packet_record.calculate_receiving_rate(interval=self.step_time)
-        self.receiving_rate_list.append(self.receiving_rate)
-        self.delay = self.packet_record.calculate_average_delay(interval=self.step_time)
-        self.delay_list.append(self.delay)
-
-        self.loss_ratio = self.packet_record.calculate_loss_ratio(interval=self.step_time)
-        self.loss_ratio_list.append(self.loss_ratio)
-
-        self.gcc_decision, self.overuse_flag = self.gcc_estimator.get_estimated_bandwidth()
-        if self.overuse_flag == 'OVERUSE':
-            self.overuse_distance = 0
-            self.last_overuse_cap = self.receiving_rate
-        else:
-            self.overuse_distance += 1
-        self.state = self.state.clone().detach()
-        self.state = torch.roll(self.state, -1, dims=-1)
-
-        self.state[0, 0, -1] = self.receiving_rate / 6000000.0
-        self.state[0, 1, -1] = self.delay / 1000.0
-        self.state[0, 2, -1] = self.loss_ratio
-        self.state[0, 3, -1] = self.bandwidth_prediction / 6000000.0
-        self.state[0, 4, -1] = self.overuse_distance / 100.0
-        self.state[0, 5, -1] = self.last_overuse_cap / 6000000.0
-
-        if len(self.receiving_rate_list) == self.state_length:
-            self.receiving_rate_list.pop(0)
-            self.delay_list.pop(0)
-            self.loss_ratio_list.pop(0)
-
-        self.counter += 1
-        
-        if self.counter % 4 == 0:
-            self.time_to_guide = True
-            self.counter = 0
-
-        # 2. RL-Agent tunes the bandwidth estimated by the heuristic scheme
-        if self.time_to_guide == True:
-            action, _, _, _ = self.ppo.policy.forward(self.state)
-            self.bandwidth_prediction = self.gcc_decision * pow(2, (2 * action - 1))
-            self.gcc_estimator.change_bandwidth_estimation(self.bandwidth_prediction)
-            self.time_to_guide = False
-        else:
-            self.bandwidth_prediction = self.gcc_decision
+        if self.last_call and self.last_call == "report_states":
+            self.last_call = "get_estimated_bandwidth"
+            # calculate state
+            self.states = []
+            receiving_rate = self.packet_record.calculate_receiving_rate(interval=self.step_time)
+            self.states.append(liner_to_log(receiving_rate))
+            delay = self.packet_record.calculate_average_delay(interval=self.step_time)
+            self.states.append(min(delay/1000, 1))
+            loss_ratio = self.packet_record.calculate_loss_ratio(interval=self.step_time)
+            self.states.append(loss_ratio)
+            latest_prediction = self.packet_record.calculate_latest_prediction()
+            self.states.append(liner_to_log(latest_prediction))
+            # make the states for model
+            torch_tensor_states = torch.FloatTensor(torch.Tensor(self.states).reshape(1, -1)).to(self.device)
+            # get model output
+            print("Doing model forward")
+            self.action, action_logprobs, value = self.model.forward(torch_tensor_states)
+            # update prediction of bandwidth by using action
+            self.bandwidth_prediction = log_to_linear(self.action)
 
         return self.bandwidth_prediction

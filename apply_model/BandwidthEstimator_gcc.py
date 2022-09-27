@@ -108,7 +108,7 @@ class GCCEstimator(object):
         bandwidth_estimation = min(BWE_by_delay, BWE_by_loss)
         if flag == True:
             self.packets_list = []
-        return BWE_by_delay,BWE_by_loss
+        return BWE_by_delay, BWE_by_loss
 
     def change_bandwidth_estimation(self,bandwidth_prediction):
         self.last_bandwidth_estimation = bandwidth_prediction

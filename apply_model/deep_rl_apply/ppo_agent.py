@@ -5,13 +5,11 @@ import torch
 import numpy as np
 import time
 from torch import nn
-from .actor_critic import ActorCritic
-import logging
+from .actor_critic_hrcc import ActorCritic
 
 
 class PPO:
-    def __init__(self, state_dim, action_dim, exploration_param, lr, betas, gamma,
-                 ppo_epoch, ppo_clip, retrain=True, model="", use_gae=False):
+    def __init__(self, state_dim, state_length, action_dim, exploration_param, lr, betas, gamma, ppo_epoch, ppo_clip, use_gae=False):
         self.lr = lr
         self.betas = betas
         self.gamma = gamma
@@ -19,26 +17,16 @@ class PPO:
         self.ppo_epoch = ppo_epoch
         self.use_gae = use_gae
 
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.policy = ActorCritic(state_dim, action_dim, exploration_param, self.device).to(self.device)
+        self.device = torch.device("cpu")
+        self.policy = ActorCritic(state_dim, state_length, action_dim, exploration_param, self.device).to(self.device)
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=lr, betas=betas)
 
-        self.policy_old = ActorCritic(state_dim, action_dim, exploration_param, self.device).to(self.device)
-
-        if retrain:
-            self.policy_old.load_state_dict(self.policy.state_dict())
-            logging.info("Retraining")
-        else:
-            # model = './data/ppo_2022_09_20_17_06_04.pth'
-            # model = "./data/ppo_2022_09_24_01_11_52.pth"
-            # model = "./data/ppo_2022_09_24_03_43_52.pth"
-            # model = "./data/ppo_2022_09_24_05_23_23.pth"
-            self.policy_old.load_state_dict(torch.load(model))
-            print(f"Not retraining, using model {model}")
+        self.policy_old = ActorCritic(state_dim, state_length, action_dim, exploration_param, self.device).to(self.device)
+        self.policy_old.load_state_dict(self.policy.state_dict())
 
     def select_action(self, state, storage):
-        state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
-        action, action_logprobs, value = self.policy_old.forward(state)
+        state = torch.FloatTensor(state).to(self.device)
+        action, action_logprobs, value, action_mean= self.policy_old.forward(state)
 
         storage.logprobs.append(action_logprobs)
         storage.values.append(value)
@@ -47,7 +35,8 @@ class PPO:
         return action
 
     def get_value(self, state):
-        return self.policy_old.critic(state)
+        action, action_logprobs, value, action_mean = self.policy_old.forward(state)
+        return value
 
     def update(self, storage, state):
         episode_policy_loss = 0
@@ -82,6 +71,4 @@ class PPO:
         return episode_policy_loss / self.ppo_epoch, episode_value_loss / self.ppo_epoch
 
     def save_model(self, data_path):
-        # logging.info(f"Saving into PTH file: {self.policy.state_dict()}")
-        # torch.save(self.policy.state_dict(), '{}ppo_{}.pth'.format(data_path, time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())))
-        torch.save(self.policy.state_dict(), f"{data_path}ppo_{time.strftime('%Y_%m_%d_%H_%M_%S', time.localtime())}.pth")
+        torch.save(self.policy.state_dict(), '{}ppo_{}.pth'.format(data_path, time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())))

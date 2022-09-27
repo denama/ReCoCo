@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
 
 import numpy as np
+from collections import defaultdict
 
 
 class PacketRecord:
@@ -18,6 +20,7 @@ class PacketRecord:
         self.min_seen_delay = self.base_delay_ms  # ms
         # ms, record the rtime of the last packet in last interval,
         self.last_interval_rtime = None
+        self.interpolated_packet_sizes = defaultdict(list)
 
     def clear(self):
         self.packet_num = 0
@@ -33,9 +36,12 @@ class PacketRecord:
 
         # Calculate the loss count
         loss_count = 0
+
         if packet_info.ssrc in self.last_seqNo:
             loss_count = max(0,
                 packet_info.sequence_number - self.last_seqNo[packet_info.ssrc] - 1)
+            self.interpolated_packet_sizes[packet_info.ssrc].append(packet_info.payload_size)
+            # print(self.interpolated_packet_sizes)
         self.last_seqNo[packet_info.ssrc] = packet_info.sequence_number
 
         # Calculate packet delay
@@ -43,8 +49,10 @@ class PacketRecord:
             # shift delay of the first packet to base delay
             self.timer_delta = self.base_delay_ms - (packet_info.receive_timestamp - packet_info.send_timestamp)
         delay = self.timer_delta + (packet_info.receive_timestamp - packet_info.send_timestamp)
+        logging.info(f"Timer delta {self.timer_delta} Receive timestamp {packet_info.receive_timestamp} Send timestamp {packet_info.send_timestamp}")
         self.min_seen_delay = min(delay, self.min_seen_delay)
-        
+        logging.info(f"Delay {delay}")
+
         # Check the last interval rtime
         if self.last_interval_rtime is None:
             self.last_interval_rtime = packet_info.receive_timestamp
@@ -66,8 +74,7 @@ class PacketRecord:
 
         result_list = []
         if interval == 0:
-            interval = self.packet_list[-1]['timestamp'] -\
-                self.last_interval_rtime
+            interval = self.packet_list[-1]['timestamp'] - self.last_interval_rtime
         start_time = self.packet_list[-1]['timestamp'] - interval
         index = self.packet_num - 1
         while index >= 0 and self.packet_list[index]['timestamp'] > start_time:
@@ -96,7 +103,6 @@ class PacketRecord:
         The unit of return value: packet/packet
         '''
         loss_list = self._get_result_list(interval=interval, key='loss_count')
-        # print(f"Loss list: {loss_list}")
         if loss_list:
             loss_num = np.sum(loss_list)
             received_num = len(loss_list)
@@ -116,12 +122,53 @@ class PacketRecord:
         if received_size_list:
             received_nbytes = np.sum(received_size_list)
             if interval == 0:
+                print("Interval is 0")
                 interval = self.packet_list[-1]['timestamp'] - self.last_interval_rtime
             rate_output_bps = 1000 * received_nbytes * 8 / interval
-            # print(f"Received {received_nbytes} Bytes in {interval} ms, so receiving rate is {rate_output_bps:.2f} bps or {(rate_output_bps / 1000):.2f} kbps")
+            # logging.info(f"Packet sizes list {received_size_list}")
+            # logging.info(f"Received {received_nbytes} Bytes in {interval} ms, so receiving rate is {rate_output_bps:.2f} bps or {(rate_output_bps / 1000):.2f} kbps")
             return rate_output_bps
         else:
             return 0
+
+    def calculate_sending_rate(self, packet_list, interval=0):
+        if packet_list:
+            # print(packet_list)
+            packet_sizes = []
+            for pkt in packet_list:
+                packet_sizes.append(pkt["payload_size"])
+            nbytes_sent = np.sum(packet_sizes)
+
+            #another approach
+            loss_list = self._get_result_list(interval=interval, key='loss_count')
+            bytes_list = self._get_result_list(interval=interval, key='payload_byte')
+            loss_count = np.sum(loss_list)
+            average_bytes = round(np.mean(bytes_list))
+            nbytes = np.sum(bytes_list)
+            missing_nbytes = loss_count * average_bytes
+            total_nbytes = nbytes + missing_nbytes
+
+            # if loss_count > 0:
+            #     print(f"Received: {nbytes}, missing {missing_nbytes}, total {total_nbytes}")
+
+            # print("Average bytes", average_bytes)
+            if (len(bytes_list) != len(bytes_list)):
+                print("Resulting lists sizes not matching")
+
+            # TODO interpolate better using ssrc
+            # TODO understand why sum of bytes list is sometimes smaller than nbytes_sent
+            # print(np.sum(bytes_list))
+            # print(nbytes_sent)
+            # print("-----")
+
+            if interval == 0:
+                print("Interval for sending rate is 0: ", interval)
+                return None
+            rate = (total_nbytes * 8 * 1000) / interval
+            return rate
+        else:
+            return None
+
 
     def calculate_latest_prediction(self):
         '''

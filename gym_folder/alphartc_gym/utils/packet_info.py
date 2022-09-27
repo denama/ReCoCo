@@ -12,6 +12,8 @@ class PacketInfo:
         self.receive_timestamp = None  # int, ms
         self.payload_size = None  # int, B
         self.bandwidth_prediction = None  # int, bps
+        self.first_packet = None  # bool
+        self.last_packet = None  # bool
 
     def __str__(self):
         return (
