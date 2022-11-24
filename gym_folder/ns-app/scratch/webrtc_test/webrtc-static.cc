@@ -28,6 +28,7 @@ const uint32_t TOPO_DEFAULT_PDELAY =100;
 const uint32_t TOPO_DEFAULT_QDELAY =300;
 const uint32_t DEFAULT_PACKET_SIZE = 1000;
 
+//define the NodeContainer BuildExampleTopo
 static NodeContainer BuildExampleTopo (uint64_t bps,
                                        uint32_t msDelay,
                                        uint32_t msQdelay,
@@ -39,6 +40,9 @@ static NodeContainer BuildExampleTopo (uint64_t bps,
     PointToPointHelper pointToPoint;
     pointToPoint.SetDeviceAttribute ("DataRate", DataRateValue  (DataRate (bps)));
     pointToPoint.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (msDelay)));
+    //Buffer size is max between DEFAULT_PACKET_SIZE=1000 and
+    //bps = linkBw = TOPO_DEFAULT_BW = 3Mbps, msQDelay = 300
+    //max (1000, 112500) -> buffer size = 1000 bytes
     auto bufSize = std::max<uint32_t> (DEFAULT_PACKET_SIZE, bps * msQdelay / 8000);
     pointToPoint.SetQueue ("ns3::DropTailQueue",
                            "MaxSize", QueueSizeValue (QueueSize (QueueSizeUnit::BYTES, bufSize)));
@@ -92,6 +96,7 @@ void ConnectApp(
 }
 
 int main(int argc, char *argv[]){
+    //logging
     LogComponentEnable("WebrtcSender",LOG_LEVEL_ALL);
     LogComponentEnable("WebrtcReceiver",LOG_LEVEL_ALL);
     // GlobalValue::Bind ("SimulatorImplementationType", StringValue ("ns3::RealtimeSimulatorImpl"));
@@ -128,6 +133,7 @@ int main(int argc, char *argv[]){
         Config::SetDefault ("ns3::RateErrorModel::ErrorRate", DoubleValue (loss_rate));
         Config::SetDefault ("ns3::RateErrorModel::ErrorUnit", StringValue ("ERROR_UNIT_PACKET"));
         Config::SetDefault ("ns3::BurstErrorModel::ErrorRate", DoubleValue (loss_rate));
+        //The number of packets being corrupted at one drop
         Config::SetDefault ("ns3::BurstErrorModel::BurstSize", StringValue ("ns3::UniformRandomVariable[Min=1|Max=3]"));
         enable_random_loss=true;
     }
@@ -167,12 +173,13 @@ int main(int argc, char *argv[]){
     Simulator::Stop (MilliSeconds(duration_time_ms + 1));
     Simulator::Run ();
     Simulator::Destroy();
+    std::cout<<"Bla."<<std::endl;
 
     if (standalone_test_only) {
       for (auto &stat : gym_conn.ConsumeStats()) {
         std::cout << stat << std::endl;
       }
-      std::cout<<"Simulation ends."<<std::endl;
+      std::cout<<"Simulation ends HELLO DENA."<<std::endl;
     }
     return 0;
 }

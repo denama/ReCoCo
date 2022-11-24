@@ -71,7 +71,6 @@ def plot_cdf_multiple(list_cdf_data, x_label, figsize=(10,5), legend=None):
                      linestyle=next(ls),
     #                  color = next(cd),
                     )
-        print(p[0].get_color())
 
     # plt.xticks(np.arange(0,26,2))
     plt.yticks(np.arange(0,1.1,0.1))
@@ -81,6 +80,7 @@ def plot_cdf_multiple(list_cdf_data, x_label, figsize=(10,5), legend=None):
 #     plt.xlim(-0.1,24)
     plt.ylabel('ECDF', fontsize=fontsize, labelpad=10)
     plt.grid()
-
-    plt.legend(legend, prop={'size': legend_fontsize}, labelspacing=labelspacing)
+    
+    if legend:
+        plt.legend(legend, prop={'size': legend_fontsize}, labelspacing=labelspacing)
     plt.tight_layout()

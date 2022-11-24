@@ -14,7 +14,7 @@ LOG_MAX_BANDWIDTH_MBPS = np.log(MAX_BANDWIDTH_MBPS)
 LOG_MIN_BANDWIDTH_MBPS = np.log(MIN_BANDWIDTH_MBPS)
 
 
-def liner_to_log(value):
+def linear_to_log(value):
     # from 10kbps~8Mbps to 0~1
     value = np.clip(value / UNIT_M, MIN_BANDWIDTH_MBPS, MAX_BANDWIDTH_MBPS)
     log_value = np.log(value)
@@ -85,13 +85,13 @@ class Estimator(object):
             # calculate state
             self.states = []
             receiving_rate = self.packet_record.calculate_receiving_rate(interval=self.step_time)
-            self.states.append(liner_to_log(receiving_rate))
+            self.states.append(linear_to_log(receiving_rate))
             delay = self.packet_record.calculate_average_delay(interval=self.step_time)
             self.states.append(min(delay/1000, 1))
             loss_ratio = self.packet_record.calculate_loss_ratio(interval=self.step_time)
             self.states.append(loss_ratio)
             latest_prediction = self.packet_record.calculate_latest_prediction()
-            self.states.append(liner_to_log(latest_prediction))
+            self.states.append(linear_to_log(latest_prediction))
             # make the states for model
             torch_tensor_states = torch.FloatTensor(torch.Tensor(self.states).reshape(1, -1)).to(self.device)
             # get model output

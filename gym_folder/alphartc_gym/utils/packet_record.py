@@ -8,13 +8,13 @@ from collections import defaultdict
 
 class PacketRecord:
     # feature_interval can be modified
-    def __init__(self, base_delay_ms=200):
+    def __init__(self, base_delay_ms=0):
         self.base_delay_ms = base_delay_ms
         self.reset()
 
     def reset(self):
         self.packet_num = 0
-        self.packet_list = []  # ms
+        self.packet_list = []
         self.last_seqNo = {}
         self.timer_delta = None  # ms
         self.min_seen_delay = self.base_delay_ms  # ms
@@ -48,10 +48,12 @@ class PacketRecord:
         if self.timer_delta is None:
             # shift delay of the first packet to base delay
             self.timer_delta = self.base_delay_ms - (packet_info.receive_timestamp - packet_info.send_timestamp)
-        delay = self.timer_delta + (packet_info.receive_timestamp - packet_info.send_timestamp)
-        logging.info(f"Timer delta {self.timer_delta} Receive timestamp {packet_info.receive_timestamp} Send timestamp {packet_info.send_timestamp}")
+        self.timer_delta = 0
+        delay = self.timer_delta + packet_info.receive_timestamp - packet_info.send_timestamp
+        # logging.info(f"Timer delta {self.timer_delta} Receive timestamp {packet_info.receive_timestamp} Send timestamp {packet_info.send_timestamp}")
         self.min_seen_delay = min(delay, self.min_seen_delay)
-        logging.info(f"Delay {delay}")
+        # logging.info(f"Recevied - sent {packet_info.receive_timestamp - packet_info.send_timestamp}")
+        # logging.info(f"Delay {delay}")
 
         # Check the last interval rtime
         if self.last_interval_rtime is None:
@@ -90,6 +92,7 @@ class PacketRecord:
         The unit of return value: ms
         '''
         delay_list = self._get_result_list(interval=interval, key='delay')
+        # print(delay_list)
         if delay_list:
             # print("Delay list ", delay_list, "base delay ", self.base_delay_ms)
             return np.mean(delay_list) - self.base_delay_ms
@@ -131,35 +134,22 @@ class PacketRecord:
         else:
             return 0
 
-    def calculate_sending_rate(self, packet_list, interval=0):
-        if packet_list:
-            # print(packet_list)
-            packet_sizes = []
-            for pkt in packet_list:
-                packet_sizes.append(pkt["payload_size"])
-            nbytes_sent = np.sum(packet_sizes)
+    def calculate_sending_rate(self, interval=0):
 
-            #another approach
-            loss_list = self._get_result_list(interval=interval, key='loss_count')
-            bytes_list = self._get_result_list(interval=interval, key='payload_byte')
+        loss_list = self._get_result_list(interval=interval, key='loss_count')
+        bytes_list = self._get_result_list(interval=interval, key='payload_byte')
+        if bytes_list:
             loss_count = np.sum(loss_list)
             average_bytes = round(np.mean(bytes_list))
             nbytes = np.sum(bytes_list)
             missing_nbytes = loss_count * average_bytes
             total_nbytes = nbytes + missing_nbytes
 
-            # if loss_count > 0:
-            #     print(f"Received: {nbytes}, missing {missing_nbytes}, total {total_nbytes}")
-
-            # print("Average bytes", average_bytes)
-            if (len(bytes_list) != len(bytes_list)):
-                print("Resulting lists sizes not matching")
+            if loss_count > 0:
+                logging.info(f"Received: {nbytes}, missing {missing_nbytes}, total {total_nbytes}")
 
             # TODO interpolate better using ssrc
-            # TODO understand why sum of bytes list is sometimes smaller than nbytes_sent
-            # print(np.sum(bytes_list))
-            # print(nbytes_sent)
-            # print("-----")
+            # sum of bytes list is sometimes smaller than nbytes_sent - because packet_list is ahead in time
 
             if interval == 0:
                 print("Interval for sending rate is 0: ", interval)
@@ -167,7 +157,7 @@ class PacketRecord:
             rate = (total_nbytes * 8 * 1000) / interval
             return rate
         else:
-            return None
+            return 0
 
 
     def calculate_latest_prediction(self):

@@ -20,7 +20,9 @@ class GymConnector(object):
     def step(self, bandwidth_bps = int):
         # logging.info(f"Bandwidth sent to simulator: {int(bandwidth_bps)}")
         self.zmq_sock.send_string(str(int(bandwidth_bps)))
+
         rep = self.zmq_sock.recv()
+        # print(rep)
         #rep is the packet list
         if rep == __GYM_EXIT_FLAG__:
             # logging.info("GYM EXIT FLAG")

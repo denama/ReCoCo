@@ -17,16 +17,16 @@ from deep_rl.ppo_agent import PPO
 logging.basicConfig(filename='logs/main_apply.log', level=logging.INFO, filemode='w')
 logging.info('Started apply model')
 
-model_to_use = "/home/dena/Documents/Gym_RTC/gym-example/data/ppo_2022_09_24_23_57_55.pth"
-step_size = 500  # how many ms in one step (we change rate every step)
+model_to_use = "/home/dena/Documents/Gym_RTC/gym-example/data/ppo_2022_11_23_15_29_33.pth"
+step_size = 200  # how many ms in one step (we change rate every step)
 exploration_param = 0.05  # the std var of action distribution
 K_epochs = 37  # update policy for K_epochs
 ppo_clip = 0.2  # clip parameter of PPO
 gamma = 0.99  # discount factor
 
-lr = 3e-5  # Adam parameters
+lr = 0.001  # Adam parameters
 betas = (0.9, 0.999)
-state_dim = 4
+state_dim = 4*5
 action_dim = 1
 
 max_num_steps = 1000
@@ -43,9 +43,12 @@ storage = Storage()
 rates_delay_loss = defaultdict(list)
 epoch_counter = 0
 
+
 while time_step < max_num_steps:
     done = False
-    state = torch.Tensor(env.reset(training=False))
+    logging.info(f"Time step: {time_step}")
+    state = env.reset(training=False)
+    # state = env.state
     print("Epoch counter: ", epoch_counter)
     rates_delay_loss[epoch_counter] = {"trace": env.current_trace,
                                        "bandwidth_prediction": [],
@@ -56,12 +59,19 @@ while time_step < max_num_steps:
                                        "log_prediction": [],
                                        "reward": []
                                                   }
-    # print("Time step", time_step, "Done: ", done)
+    time_step_in_epoch = 0
+    print("Time step at reset: ", time_step_in_epoch)
+
     while not done:
         # prediction = BWE.get_estimated_bandwidth()
         # action = BWE.action
+        #Select action is doing model.forward + storage. Same thing as in "draw"
         action = ppo.select_action(state, storage)
         state, reward, done, _ = env.step(action)
+        # logging.info(f"Reward: {reward}")
+        if (reward < -1) or (reward > 1):
+            print("Reward is not between -1 and 1!")
+        # logging.info(state)
         # print(env.bandwidth_prediction_class_var)
         rates_delay_loss[epoch_counter]["bandwidth_prediction"].append(env.bandwidth_prediction_class_var)
         rates_delay_loss[epoch_counter]["sending_rate"].append(env.sending_rate)
@@ -70,9 +80,10 @@ while time_step < max_num_steps:
         rates_delay_loss[epoch_counter]["loss_ratio"].append(env.loss_ratio)
         rates_delay_loss[epoch_counter]["log_prediction"].append(float(env.log_prediction))
         rates_delay_loss[epoch_counter]["reward"].append(reward)
-        logging.info(f"{state[0]}, {state[1]}, {state[2]}, {float(state[3])}, {reward}")
-        state = torch.Tensor(state)
+        # logging.info(f"{state}, {reward}")
+        # state = torch.Tensor(state)
         time_step += 1
+        time_step_in_epoch += 1
 
     rates_delay_loss[epoch_counter]["list_of_packets"] = env.list_of_packets
     env.clear_list_of_packets()

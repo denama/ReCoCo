@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import logging
 import torch
 from torch import nn
 from torch.distributions import MultivariateNormal
@@ -31,12 +32,15 @@ class ActorCritic(nn.Module):
                 nn.ReLU(),
                 nn.Linear(32, 1)
                 )
+        #leaky relu instead of relu, from 128 to 1
         self.device = device
         self.action_var = torch.full((action_dim,), exploration_param**2).to(self.device)
         self.random_action = True
 
+
+
     def forward(self, state):    
-        value = self.critic(state)
+        state_value = self.critic(state)
         action_mean = self.actor(state)
         cov_mat = torch.diag(self.action_var).to(self.device)
         dist = MultivariateNormal(action_mean, cov_mat)
@@ -45,10 +49,9 @@ class ActorCritic(nn.Module):
             action = action_mean
         else:
             action = dist.sample()
-
         action_logprobs = dist.log_prob(action)
 
-        return action.detach(), action_logprobs, value
+        return action.detach(), action_logprobs, state_value
 
     def evaluate(self, state, action):
         action_mean = self.actor(state)
@@ -57,7 +60,7 @@ class ActorCritic(nn.Module):
 
         action_logprobs = dist.log_prob(action)
         dist_entropy = dist.entropy()
-        value = self.critic(state)
+        state_value = self.critic(state)
 
-        return action_logprobs, torch.squeeze(value), dist_entropy
+        return action_logprobs, torch.squeeze(state_value), dist_entropy
 

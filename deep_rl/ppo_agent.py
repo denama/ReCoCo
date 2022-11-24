@@ -29,15 +29,13 @@ class PPO:
             self.policy_old.load_state_dict(self.policy.state_dict())
             logging.info("Retraining")
         else:
-            # model = './data/ppo_2022_09_20_17_06_04.pth'
-            # model = "./data/ppo_2022_09_24_01_11_52.pth"
-            # model = "./data/ppo_2022_09_24_03_43_52.pth"
-            # model = "./data/ppo_2022_09_24_05_23_23.pth"
             self.policy_old.load_state_dict(torch.load(model))
             print(f"Not retraining, using model {model}")
 
     def select_action(self, state, storage):
+
         state = torch.FloatTensor(state.reshape(1, -1)).to(self.device)
+
         action, action_logprobs, value = self.policy_old.forward(state)
 
         storage.logprobs.append(action_logprobs)
@@ -47,9 +45,10 @@ class PPO:
         return action
 
     def get_value(self, state):
+        state = state.reshape(1, -1)
         return self.policy_old.critic(state)
 
-    def update(self, storage, state):
+    def update(self, storage):
         episode_policy_loss = 0
         episode_value_loss = 0
         if self.use_gae:
