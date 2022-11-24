@@ -57,7 +57,7 @@ for step in range(n_steps):
   # print("Action: ", action)
   obs, reward, done, info = env.step(action)
   # print('obs=', obs, 'reward=', reward, 'done=', done)
-  print("action", action)
+  # print("action", action)
 
   rates_delay_loss["bandwidth_prediction"].append(env.bandwidth_prediction_class_var)
   rates_delay_loss["sending_rate"].append(env.sending_rate)
