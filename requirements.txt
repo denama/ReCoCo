@@ -97,7 +97,6 @@ requests==2.27.1
 requests-oauthlib==1.3.1
 rich==12.6.0
 rsa==4.9
-sb3-contrib @ git+https://github.com/Stable-Baselines-Team/stable-baselines3-contrib@a9735b9f317be4283e56d221e19087b926ca9ec0
 scipy==1.7.3
 Send2Trash==1.8.0
 six==1.16.0

@@ -9,8 +9,8 @@ import logging
 from collections import defaultdict
 import pickle
 
-logging.basicConfig(filename='logs/check_gym_env.log', level=logging.INFO, filemode='w')
-logging.info('Started apply model')
+# logging.basicConfig(filename='logs/check_gym_env.log', level=logging.INFO, filemode='w')
+# logging.info('Started apply model')
 
 
 # env = GymEnv()
@@ -23,13 +23,13 @@ logging.info('Started apply model')
 # env = make_vec_env(lambda: env, n_envs=1)
 # model = A2C('MlpPolicy', env, verbose=1).learn(5000)
 
-print("-----------------------")
-print("DONE WITH TRAINING")
-print("-----------------------")
+# print("-----------------------")
+# print("DONE WITH TRAINING")
+# print("-----------------------")
 
 #Load a saved agent
-save_dir = "./data/temp"
-model = PPO.load(save_dir + "/PPO_model")
+save_dir = "./data"
+model = PPO.load(save_dir + "/PPO/400000")
 env = GymEnv()
 # env = make_vec_env(lambda: env, n_envs=1)
 

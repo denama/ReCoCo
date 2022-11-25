@@ -93,10 +93,10 @@ class GymEnv(gym.Env):
 
         if training:
             # self.current_trace = random.choice(self.trace_set)
-            self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/traces/WIRED_900kbps.json"
+            self.current_trace = "./traces/WIRED_900kbps.json"
         else:
             # self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/WIRED_900kbs.json"
-            self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/traces/WIRED_900kbps.json"
+            self.current_trace = "./traces/WIRED_900kbps.json"
             # self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/traces/4G_500kbps.json"
 
 
