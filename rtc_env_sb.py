@@ -62,7 +62,7 @@ class GymEnv(gym.Env):
         #Actions - actions can be from 0 to 1 (continuous actions) - trying to rescale to -1 to 1
         self.action_dim = 1
         self.low, self.high = MIN_BANDWIDTH_MBPS*UNIT_M, MAX_BANDWIDTH_MBPS*UNIT_M
-        print("LOWEST ACTION ", self.low, "HIGHEST ACTION ", self.high)
+        # print("LOWEST ACTION ", self.low, "HIGHEST ACTION ", self.high)
         self.action_space = spaces.Box(low=0.0, high=1.0, shape=(self.action_dim,), dtype=np.float32)
         # self.action_space = gym.spaces.Box(low=-1, high=1, shape=(self.action_dim,), dtype=np.float32)
 
@@ -88,16 +88,18 @@ class GymEnv(gym.Env):
         original_action = self.low + (0.5 * (scaled_action + 1.0) * (self.high - self.low))
         return original_action
 
-    def reset(self, training=True):
+    def reset(self, trace):
         self.gym_env = gym_file.Gym()
 
-        if training:
-            # self.current_trace = random.choice(self.trace_set)
-            self.current_trace = "./traces/WIRED_900kbps.json"
-        else:
-            # self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/WIRED_900kbs.json"
-            self.current_trace = "./traces/WIRED_900kbps.json"
-            # self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/traces/4G_500kbps.json"
+        # if training:
+        #     # self.current_trace = random.choice(self.trace_set)
+        #     self.current_trace = "./traces/WIRED_900kbps.json"
+        # else:
+        #     # self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/WIRED_900kbs.json"
+        #     self.current_trace = "./traces/WIRED_900kbps.json"
+        #     # self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/traces/4G_500kbps.json"
+        
+        self.current_trace = trace
 
 
         #Do the simulation with the current trace
@@ -249,6 +251,11 @@ class GymEnv(gym.Env):
         delay = self.delay
         loss_ratio = self.loss_ratio
         bandwidth_util = receiving_rate / bandwidth
+        
+        if bandwidth <= 0.00001:
+            bandwidth_util = 0
+        else:
+            bandwidth_util = receiving_rate / bandwidth
 
         # logging.info(f"Sending rate: {sending_rate}, Receiving rate: {receiving_rate}, "
         #              f"bandwidth: {bandwidth}, delay: {delay}, U: {round(receiving_rate / bandwidth, 2)}, "
