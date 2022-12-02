@@ -6,3 +6,9 @@ __pycache__
 !pretrained_model.pth
 ./simulation_analysis/outputs/
 .ipynb_checkpoints/
+output/
+output_mp/
+tensorboard_logs/
+tensorboard_logs_mp/
+data_mp/
+data/

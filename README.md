@@ -1,37 +1,22 @@
-# AlphaRTC Gym example
+## Scripts
 
-This repository is an example for [AlphaRTC Gym](https://github.com/OpenNetLab/gym). By converting the raw stats of packet traces to some features and leveraging the PPO algorithms, this example trained a simple bandwidth estimator.
+- train_test_one_trace: train on one trace for 10000 samples, 10 times (fake episodes). Every episode save model, test and record reward (rates_delay_loss[trace][m]). You specify the trace and the algorithm and the number of environments for vectorization (note: TD3 does not support vectorization)
+- mp+train_test_one_trace: try different parameters and run with multiprocessing
+- train_test_one_by_one: train on one trace for X timesteps, Y times (fake episodes). Then save model and continue training with another tracefile
 
-## Try this example
+- train_vec_env: just training
+- test_env: just testing - load any model you want
+- main_apply_sb: to test policy with stable_baselines evaluator function
 
-1. Fetch all submodule
+- check_gym_env_original: legacy, keep for debugging stuff
+- tensorboard_trial: legacy, keep for debugging stuff
 
-```bash
-git submodule init
-git submodule update
-```
+- rtc_env_sb: environment exactly following Gym guidelines, to use with stable_baselines
 
-2. Please visit Gym link for the instructions of [AlphaRTC Gym](https://github.com/OpenNetLab/gym) to install AlphaRTC Gym in `alphartc_gym`
 
-3. Install example dependencies OpenAI GYM
+- plotting_sb: to explore plotting, finish
 
-```bash
-python3 -m pip install -r requirements.txt
-```
+- rtc_env: legacy, works with old main code (without stable baselines)
+- main: legacy, use PPO implementation in deep_rl/ and rtc_env
+- main_apply_model: legacy, test model from PPO implementation in deep_rl/ and rtc_env
 
-4. Run this example
-
-```bash
-python3 main.py
-```
-
-If you see something like
-```
-Episode 0        Average policy loss, value loss, reward -0.001012914622997811, 1749.7713505035483, -0.5917726188465685
-Episode 1        Average policy loss, value loss, reward -0.003164666119424294, 1643.378693441069, -0.5696511401323291
-Episode 2        Average policy loss, value loss, reward -0.0006242794975365944, 1503.4368403712722, -0.5418709073877055
-Episode 3        Average policy loss, value loss, reward -0.0013577909024748813, 1396.8935836247986, -0.5149282318393551
-Episode 4        Average policy loss, value loss, reward -0.0002334891452391077, 1349.4928827780047, -0.5091586053527624
-
-```
-which means this example has readied in your environment. And you can find your model under the folder `data`.
