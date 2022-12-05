@@ -41,7 +41,6 @@ elif alg == "TD3":
     
 
 TIMESTEPS = 10000
-iters = 0
-for i in range(30):
+for i in range(15):
     model.learn(total_timesteps=TIMESTEPS, reset_num_timesteps=False, tb_log_name=alg)
     model.save(f"{model_save_dir}/{TIMESTEPS*i}")

@@ -48,16 +48,19 @@ def log_to_linear(value):
 
 class GymEnv(gym.Env):
 
-    def __init__(self, step_time=200):
+    def __init__(self, step_time=200, input_trace="./big_trace/big_trace2.json", normalize_states=True):
         super(GymEnv, self).__init__()
 
         self.gym_env = None     
         self.step_time = step_time
+        self.input_trace = input_trace
+        self.normalize_states = normalize_states
 
         trace_dir = os.path.join(os.path.dirname(__file__), "traces")
         # trace_dir = os.path.join(os.path.dirname(__file__), "gym_folder", "alphartc_gym", "tests", "data")
         self.trace_set = glob.glob(f'{trace_dir}/**/*.json', recursive=True)
         # print("Trace set", self.trace_set)
+        # self.current_trace = random.choice(self.trace_set)
 
         #Actions - actions can be from 0 to 1 (continuous actions) - trying to rescale to -1 to 1
         self.action_dim = 1
@@ -70,9 +73,17 @@ class GymEnv(gym.Env):
         #States: receiving rate, average delay, loss ratio, latest prediction
         self.state_dim = 4
         self.state_length = 5
-        self.observation_space = spaces.Box(low=0.0, high=1.0,
+        if self.normalize_states:
+            self.states_low = 0.0
+            self.states_high = 1.0
+        else:
+            self.states_low = 0.0
+            self.states_high = self.high
+        
+        self.observation_space = spaces.Box(low=self.states_low, high=self.states_high,
                                             shape=(self.state_dim*self.state_length, ),
                                             dtype=np.float32)
+
         self.list_of_packets = []
 
 
@@ -88,23 +99,14 @@ class GymEnv(gym.Env):
         original_action = self.low + (0.5 * (scaled_action + 1.0) * (self.high - self.low))
         return original_action
 
-    def reset(self, trace):
+    def reset(self):
         self.gym_env = gym_file.Gym()
-
-        # if training:
-        #     # self.current_trace = random.choice(self.trace_set)
-        #     self.current_trace = "./traces/WIRED_900kbps.json"
-        # else:
-        #     # self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/gym_folder/alphartc_gym/tests/data/WIRED_900kbs.json"
-        #     self.current_trace = "./traces/WIRED_900kbps.json"
-        #     # self.current_trace = "/home/dena/Documents/Gym_RTC/gym-example/traces/4G_500kbps.json"
         
-        self.current_trace = trace
-
+        self.current_trace = self.input_trace
 
         #Do the simulation with the current trace
-        # logging.info("------------------------------------------")
         logging.info(f"{self.current_trace.split('/')[-1]}")
+        
         self.gym_env.reset(trace_path=self.current_trace,
             report_interval_ms=self.step_time,
             duration_time_ms=0)
@@ -146,8 +148,8 @@ class GymEnv(gym.Env):
         #Rescale action from [-1, 1] to original [low, high] interval - bps
         # bandwidth_prediction = self.rescale_action(action)
 
-        logging.info(f"Action scaled {action}")
-        logging.info(f"Action original {int(bandwidth_prediction)}")
+        # logging.info(f"Action scaled {action}")
+        # logging.info(f"Action original {int(bandwidth_prediction)}")
         self.bandwidth_prediction_class_var = int(bandwidth_prediction)
 
 
@@ -200,43 +202,34 @@ class GymEnv(gym.Env):
         self.state_multidim = self.state_multidim.clone().detach()
         self.state_multidim = torch.roll(self.state_multidim, -1, dims=-1)
 
-        #States normalized
-        self.state_multidim[0, -1] = torch.from_numpy(np.asarray(linear_to_log(self.receiving_rate)))
-        self.state_multidim[1, -1] = min(self.delay/1000, 1)
-        self.state_multidim[2, -1] = self.loss_ratio
-        self.state_multidim[3, -1] = torch.from_numpy(np.asarray(linear_to_log(latest_prediction)))
+
+        if self.normalize_states:
+            self.state_multidim[0, -1] = torch.from_numpy(np.asarray(linear_to_log(self.receiving_rate)))
+            self.state_multidim[1, -1] = min(self.delay/1000, 1)
+            self.state_multidim[2, -1] = self.loss_ratio
+            self.state_multidim[3, -1] = torch.from_numpy(np.asarray(linear_to_log(latest_prediction)))
+        else:
+            self.state_multidim[0, -1] = self.receiving_rate / 1000
+            self.state_multidim[1, -1] = self.delay
+            self.state_multidim[2, -1] = self.loss_ratio
+            self.state_multidim[3, -1] = torch.from_numpy(latest_prediction)
 
         self.state = torch.flatten(self.state_multidim)
 
-        #States not normalized
-        # self.state[0, -1] = self.receiving_rate / 1000
-        # self.state[1, -1] = self.delay
-        # self.state[2, -1] = self.loss_ratio
-        # self.state[3, -1] = latest_prediction
 
         # logging.info(
         #     f"Receiving rate state | Delay state | Loss ratio state | Latest prediction"
         #     f"      \n{states[0]},          {states[1]},            {states[2]},            {states[3]}  ")
 
         #Calculate bandwidth utilization
-
         self.current_time_step = self.time_step_in_epoch * self.step_time
         self.current_time_step = pd.to_datetime(self.current_time_step, unit = "ms")
         self.current_bandwidth = self.capacities.loc[self.current_time_step]
 
         # calculate reward
-        #receiving rate - delay - loss_ratio
         reward = self.calculate_reward()
-        # reward2 = states[0] - states[1] - states[2]
 
         self.time_step_in_epoch += 1
-
-        # print("Sending rate: ", self.sending_rate, "bandwidth: ", self.current_bandwidth,
-                  # "Receiving rate:", self.receiving_rate, "delay: ", self.delay)
-
-        # logging.info(f"Reward: {reward}")
-        # print("---------------RL AGENT STEP END --------------------")
-
 
         return np.array(self.state), reward, done, {}
 
@@ -245,12 +238,11 @@ class GymEnv(gym.Env):
 
 
     def calculate_reward(self):
-        sending_rate = self.sending_rate / 1000
-        bandwidth = self.current_bandwidth
-        receiving_rate = self.receiving_rate / 1000
+        sending_rate = self.sending_rate / 1000  #from bps in kbps
+        bandwidth = self.current_bandwidth  #already in kbps
+        receiving_rate = self.receiving_rate / 1000  #from bps in kbps
         delay = self.delay
         loss_ratio = self.loss_ratio
-        bandwidth_util = receiving_rate / bandwidth
         
         if bandwidth <= 0.00001:
             bandwidth_util = 0

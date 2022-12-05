@@ -13,7 +13,7 @@ traces = ["./traces/WIRED_900kbps.json",
 
 input_conf = {
     "num_timesteps": 10000,
-    "num_episodes": 15,
+    "num_episodes": 10,
     "n_cores": 12,
     "save_dir": "./data_mp",
     "tensorboard_dir": f"./tensorboard_logs_mp",

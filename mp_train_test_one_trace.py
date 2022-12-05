@@ -1,6 +1,7 @@
 
 from collections import defaultdict
 import pickle
+import pandas as pd
 import numpy as np
 import os
 import time
@@ -144,15 +145,17 @@ def main_func(conf_dict):
         with open(os.path.join(input_conf["rates_delay_loss_dir"], f"rates_delay_loss_{suffix}.pickle"), "wb") as f:
             pickle.dump(rates_delay_loss, f)
             
-        print("Finised with: ", conf_dict)
+    print("Finised with: ", conf_dict)
             
             
 
 if __name__ == "__main__":
     
-    keys, values = zip(*config_dict_grid.items())
-    permutation_dicts = [dict(zip(keys, v)) for v in itertools.product(*values)]
-    print("Len permutation dicts: ", len(permutation_dicts))
+    # keys, values = zip(*config_dict_grid.items())
+    # permutation_dicts = [dict(zip(keys, v)) for v in itertools.product(*values)]
+    pickle_perm_dicts = "./permutation_dicts_until_100.pkl"
+    permutation_dicts = pd.read_pickle(pickle_perm_dicts)
+    print(f"Doing {pickle_perm_dicts}, len: {len(permutation_dicts)}")
 
     n_cores = input_conf["n_cores"]
     pool = multiprocessing.Pool(processes=n_cores)
