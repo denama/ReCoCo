@@ -27,7 +27,7 @@ class Estimator(object):
         self.device = torch.device("cpu")
         self.ppo = PPO(self.state_dim, self.state_length, action_dim, exploration_param, lr, betas, gamma, K_epochs,
                        ppo_clip)
-        self.ppo.policy.load_state_dict(torch.load('./apply_model/model/ppo_2021_07_25_04_57_11_with500trace.pth'))
+        self.ppo.policy.load_state_dict(torch.load('./model/ppo_2021_07_25_04_57_11_with500trace.pth'))
         self.packet_record = PacketRecord()
         self.packet_record.reset()
         self.step_time = step_time

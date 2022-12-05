@@ -1,4 +1,5 @@
 import collections
+from gym_folder.alphartc_gym.utils.packet_record import PacketRecord
 
 kMinNumDeltas = 60
 threshold_gain_ = 4
@@ -70,6 +71,8 @@ class GCCEstimator(object):
         self.last_update_threshold_ms = -1
         self.now_ms = -1
 
+        self.packet_record = PacketRecord()
+
     def report_states(self, stats: dict):
         '''
         Store all packet header information for packets received within 200ms in packets_list
@@ -87,6 +90,7 @@ class GCCEstimator(object):
         packet_info.size = pkt["header_length"] + pkt["payload_size"] + pkt["padding_length"]
         packet_info.bandwidth_prediction = self.last_bandwidth_estimation
         self.now_ms = packet_info.receive_timestamp  # use the arrival time of the last packet as the system time
+        self.packet_record.on_receive(packet_info)
 
         self.packets_list.append(packet_info)
 
