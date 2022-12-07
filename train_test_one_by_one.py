@@ -33,8 +33,8 @@ traces = ["./traces/WIRED_900kbps.json",
            ]
 
 
-for i in range(len(traces)):
-# for i in range(2):
+# for i in range(len(traces)):
+for i in range(3,6):
     
     trace = traces[i]
     print("Input trace: ", trace)
@@ -77,7 +77,7 @@ for i in range(len(traces)):
     model_test = SAC.load(save_model_dir, env=env_test)
 
     obs = env_test.reset()
-    n_steps=1000
+    n_steps=2000
     for step in range(n_steps):
         action, _ = model_test.predict(obs, deterministic=True)
         obs, reward, done, info = env_test.step(action)

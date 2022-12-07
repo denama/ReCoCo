@@ -1,6 +1,8 @@
 .vscode
 __pycache__
 *.jpg
+*.png
+*.pdf
 *.pth
 .idea/
 !pretrained_model.pth

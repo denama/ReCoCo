@@ -153,7 +153,8 @@ if __name__ == "__main__":
     
     # keys, values = zip(*config_dict_grid.items())
     # permutation_dicts = [dict(zip(keys, v)) for v in itertools.product(*values)]
-    pickle_perm_dicts = "./permutation_dicts_until_100.pkl"
+
+    pickle_perm_dicts = "./permutation_dicts_big_trace_only.pkl"
     permutation_dicts = pd.read_pickle(pickle_perm_dicts)
     print(f"Doing {pickle_perm_dicts}, len: {len(permutation_dicts)}")
 

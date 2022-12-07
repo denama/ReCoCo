@@ -16,10 +16,11 @@ import os
 save_dir = "./data"
 alg_name = "SAC"
 
-model_folder = "./data/SAC_1_env_WIRED_200kbps/90000.zip"
-model_folder = "./data/SAC_WIRED_200kbps/90000.zip"
-model_folder = "./data/model_train_bla.zip"
-suffix = "SAC_20_envs"
+
+
+
+model_folder = "./data/SAC_all_traces_1_env_v6/5.zip"
+suffix = "SAC_all_traces_1_env_v6"
 
 step_time = 200
 
@@ -37,7 +38,7 @@ traces = ["./traces/WIRED_900kbps.json",
 
 
 
-for i in range(0,1):
+for i in range(6):
     
     print("Testing..")
     
@@ -45,7 +46,7 @@ for i in range(0,1):
     print("Input trace: ", trace)
     rates_delay_loss[trace] = defaultdict(list)
     
-    env = GymEnvSimple(step_time=step_time, input_trace=trace,  normalize_states=False)
+    env = GymEnv(step_time=step_time, input_trace=trace,  normalize_states=True)
     model = SAC.load(model_folder, env=env)
 
     obs = env.reset()
