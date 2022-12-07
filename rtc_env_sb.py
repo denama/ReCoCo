@@ -310,7 +310,6 @@ class GymEnv(gym.Env):
 
         if loss_ratio > 0:
             reward = 0.333*Ru + 0.333*Rd + 0.333*Rl
-            # print("Loss ratio larger than 0")
         else:
             reward = (2/5) * Ru + (2/5) * Rd + (1/5) * Rl
 

@@ -37,6 +37,7 @@ class Estimator(object):
         self.counter = 0
         self.bandwidth_prediction = 300000
         self.gcc_estimator = GCCEstimator()
+        self.gcc_estimator.reset()
         self.receiving_rate_list = []
         self.delay_list = []
         self.loss_ratio_list = []

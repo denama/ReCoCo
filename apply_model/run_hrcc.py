@@ -7,8 +7,12 @@ from apply_model import BandwidthEstimator_gcc
 
 from collections import defaultdict
 
-BWE_gcc = BandwidthEstimator_gcc.GCCEstimator()
-bandwidth_prediction_gcc, _ = BWE_gcc.get_estimated_bandwidth()
+# BWE_gcc = BandwidthEstimator_gcc.GCCEstimator()
+# bandwidth_prediction_gcc, _ = BWE_gcc.get_estimated_bandwidth()
+
+hrcc_model_path = "./model/ppo_2021_07_25_04_57_11_with500trace.pth"
+# BWE_hrcc = BandwidthEstimator_hrcc.Estimator(hrcc_model_path)
+# bandwidth_prediction_hrcc = BWE_hrcc.get_estimated_bandwidth()
 
 
 
@@ -37,27 +41,35 @@ for current_trace in list_of_traces:
     gym_env.reset(trace_path=current_trace,
                        report_interval_ms=step_time,
                        duration_time_ms=0)
-    BWE_gcc.reset()
+    # BWE_hrcc.reset()
+    BWE_hrcc = BandwidthEstimator_hrcc.Estimator(hrcc_model_path)
 
     # Initialize a new **empty** packet record
     # packet_record = PacketRecord()
-    bandwidth_prediction_gcc, _ = BWE_gcc.get_estimated_bandwidth()
+    bandwidth_prediction_hrcc = BWE_hrcc.get_estimated_bandwidth()
+    # print(bandwidth_prediction_hrcc)
+
 
     #ON STEP
     for i in range(2000):
-        packet_list, done = gym_env.step(bandwidth_prediction_gcc)
+        packet_list, done = gym_env.step(bandwidth_prediction_hrcc)
         for pkt in packet_list:
-            BWE_gcc.report_states(pkt)
+            BWE_hrcc.report_states(pkt)
 
-        bandwidth_prediction_gcc, _ = BWE_gcc.get_estimated_bandwidth()
-        # print(bandwidth_prediction_gcc)
+        bandwidth_prediction_hrcc = BWE_hrcc.get_estimated_bandwidth()
+        # print(bandwidth_prediction_hrcc)
         # Calculate rate, delay, loss
-        sending_rate = BWE_gcc.packet_record.calculate_sending_rate(interval=step_time)
-        receiving_rate = BWE_gcc.packet_record.calculate_receiving_rate(interval=step_time)
-        loss_ratio = BWE_gcc.packet_record.calculate_loss_ratio(interval=step_time)
-        delay = BWE_gcc.packet_record.calculate_average_delay(interval=step_time)
+        sending_rate = BWE_hrcc.packet_record.calculate_sending_rate(interval=step_time)
+        receiving_rate = BWE_hrcc.receiving_rate
+        loss_ratio1 = BWE_hrcc.packet_record.calculate_loss_ratio(interval=step_time)
+        loss_ratio = BWE_hrcc.loss_ratio
+        delay = BWE_hrcc.delay
 
-        rates_delay_loss["bandwidth_prediction"].append(bandwidth_prediction_gcc)
+        if loss_ratio1 != loss_ratio:
+            print("Problem with loss ratio")
+            exit()
+
+        rates_delay_loss["bandwidth_prediction"].append(bandwidth_prediction_hrcc)
         rates_delay_loss["sending_rate"].append(sending_rate)
         rates_delay_loss["receiving_rate"].append(receiving_rate)
         rates_delay_loss["delay"].append(delay)
@@ -71,10 +83,10 @@ for current_trace in list_of_traces:
             print(f"DONE WITH THE TRACE. I reached i {i}")
             break
 
-    with open(f"results_gcc/rates_delay_loss_gcc_{trace_name}.pickle", "wb") as f:
+    with open(f"results_hrcc/rates_delay_loss_hrcc_{trace_name}.pickle", "wb") as f:
         pickle.dump(rates_delay_loss, f)
 
-    print(rates_delay_loss)
+    # print(rates_delay_loss)
 
 
 
@@ -99,13 +111,13 @@ for current_trace in list_of_traces:
 # print("Prediction from challenge example estimator", bandwidth_prediction1)
 # print("----------------------------------------------")
 #
-# # hrcc_model_path = './model/ppo_2021_07_25_04_57_11_with500trace.pth'
-# hrcc_model_path = "./model/ppo_2022_05_05_16_19_31_v2.pth"
+# hrcc_model_path = './model/ppo_2021_07_25_04_57_11_with500trace.pth'
+# hrcc_model_path = "./model/ppo_2021_07_25_04_57_11_with500trace.pth"
 # BWE_hrcc = BandwidthEstimator_hrcc.Estimator(hrcc_model_path)
 # bandwidth_prediction2 = BWE_hrcc.get_estimated_bandwidth()
 # print("Reality check step time: ", BWE_hrcc.step_time)
 # print("Prediction from HRCC estimator", bandwidth_prediction2)
-# print("----------------------------------------------")
+print("----------------------------------------------")
 #
 # BWE_gcc = BandwidthEstimator_gcc.GCCEstimator()
 # bandwidth_prediction3, _ = BWE_gcc.get_estimated_bandwidth()
