@@ -35,11 +35,12 @@ def main_func(conf_dict):
     step_time = conf_dict["step_time"]
     alg_name = conf_dict["alg"]
     tuned = conf_dict["tuned"]
+    reward_profile = conf_dict["reward_profile"]
     
     trace_name = trace.split("/")[2].split(".")[0]
     # print("Input trace: ", trace)
     
-    conf_params = f"{alg_name}_{trace_name}_{step_time}_delay_{delay_states}_norm_states_{normalize_states}_tuned_{tuned}"
+    conf_params = f"{alg_name}_{trace_name}_{step_time}_delay_{delay_states}_norm_states_{normalize_states}_tuned_{tuned}_reward_profile_{reward_profile}"
     
     tensorboard_dir = os.path.join(input_conf["tensorboard_dir"], conf_params)
     save_subfolder = conf_params
@@ -55,7 +56,7 @@ def main_func(conf_dict):
     if delay_states:
         env = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states)
     else:
-        env = GymEnvSimple(step_time=step_time, input_trace=trace, normalize_states=normalize_states)
+        env = GymEnvSimple(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
     
     num_envs = 1
     env = make_vec_env(lambda: env, n_envs=num_envs, seed=42)
@@ -100,7 +101,7 @@ def main_func(conf_dict):
         if delay_states:
             env_test = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states)
         else:
-            env_test = GymEnvSimple(step_time=step_time, input_trace=trace, normalize_states=normalize_states)
+            env_test = GymEnvSimple(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
 
         # print(f"Testing model from {save_model_dir_per_num_timesteps}")
 
@@ -145,7 +146,7 @@ def main_func(conf_dict):
         with open(os.path.join(input_conf["rates_delay_loss_dir"], f"rates_delay_loss_{suffix}.pickle"), "wb") as f:
             pickle.dump(rates_delay_loss, f)
             
-    print("Finised with: ", conf_dict)
+    print("Finished with: ", conf_dict)
             
             
 
@@ -154,7 +155,7 @@ if __name__ == "__main__":
     # keys, values = zip(*config_dict_grid.items())
     # permutation_dicts = [dict(zip(keys, v)) for v in itertools.product(*values)]
 
-    pickle_perm_dicts = "./permutation_dicts_big_trace_only.pkl"
+    pickle_perm_dicts = "./permutation_dicts_reward_profiles.pkl"
     permutation_dicts = pd.read_pickle(pickle_perm_dicts)
     print(f"Doing {pickle_perm_dicts}, len: {len(permutation_dicts)}")
 

@@ -269,7 +269,6 @@ class GymEnvSimple(gym.Env):
             reward = 1
             return reward
 
-        print(self.reward_profile)
         # Covers cases for 0 <= utilization <= 1
         # Covers reward profiles: 0,1,2,3,4
         try:
@@ -281,7 +280,6 @@ class GymEnvSimple(gym.Env):
                     Ru = -8.2 * ((bandwidth_util - 1) ** 2) + 1
             else:
                 if self.reward_profile == 1:
-                    print("Im in reward profile 1")
                     threshold = 0.65
                     linear_param = 1.53847
                     quadratic_param = 8.165
@@ -289,7 +287,6 @@ class GymEnvSimple(gym.Env):
                     threshold = 0.7
                     linear_param = 1.42857
                     quadratic_param = 11.111
-                    print("Im in reward profile 2")
                 elif self.reward_profile == 3:
                     threshold = 0.75
                     linear_param = 1.33333
@@ -298,14 +295,16 @@ class GymEnvSimple(gym.Env):
                     threshold = 0.8
                     linear_param = 1.25
                     quadratic_param = 25
+                    
+                if (bandwidth_util >= 0) and (bandwidth_util <= threshold):
+                    Ru = (linear_param * bandwidth_util) - 1
+                elif (bandwidth_util > threshold) and (bandwidth_util <= 1):
+                    Ru = quadratic_param * ((bandwidth_util - threshold) ** 2)
+                    
         except ValueError:
             print("Wrong reward profile! Available profiles: 0,1,2,3,4")
 
-            if (bandwidth_util >= 0) and (bandwidth_util <= threshold):
-                Ru = (linear_param * bandwidth_util) - 1
-            elif (bandwidth_util > threshold) and (bandwidth_util <= 1):
-                Ru = quadratic_param * ((bandwidth_util - threshold) ** 2)
-        
+
         Ru = round(Ru, 4)
 
         # Covers cases for delay >= 0

@@ -7,7 +7,7 @@ traces = ["./traces/WIRED_900kbps.json",
           "./traces/4G_700kbps.json",
           "./traces/4G_3mbps.json",
           "./traces/4G_500kbps.json",
-          "./big_trace/big_trace2.json",
+          # "./big_trace/big_trace2.json",
            ]
 
 
@@ -23,11 +23,12 @@ input_conf = {
 
 config_dict_grid = {
     "trace": traces,
-    "delay_states": [True, False],
-    "normalize_states": [True, False],
-    "step_time": [200,400,600],
-    "alg": ["SAC", "TD3", "PPO"],
-    "tuned": [False, True], 
+    "delay_states": [False],
+    "normalize_states": [True],
+    "step_time": [200],
+    "alg": ["SAC", "TD3"],
+    "tuned": [False, True],
+    "reward_profile": [0,1,2,3,4],
 }
 
 

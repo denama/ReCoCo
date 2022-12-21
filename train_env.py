@@ -13,15 +13,15 @@ import os
 
 
 save_dir = "./data"
-alg_name = "SAC"
-step_time = 400
+alg_name = "TD3"
+step_time = 200
 
 
 #Trial: train it with vec_env, run it with normal env
 
 rates_delay_loss = {}
 
-traces = ["./traces/WIRED_900kbps.json", "./traces/WIRED_35mbps.json"]
+traces = ["./traces/WIRED_900kbps.json", "./traces/WIRED_200kbps.json"]
 
 
 # for i in range(len(traces)):

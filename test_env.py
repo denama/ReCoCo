@@ -16,11 +16,12 @@ import os
 save_dir = "./data"
 alg_name = "SAC"
 
+reward_profile = 4
 
-
-
-model_folder = "./data/SAC_all_traces_1_env_v6/5.zip"
-suffix = "SAC_all_traces_1_env_v6"
+conf_name = "SAC_WIRED_900kbps_200_delay_False_norm_states_True_tuned_True"
+model_num = 150000
+model_folder = f"./data_mp/{conf_name}/{model_num}.zip"
+suffix = f"{conf_name}_reward_profile_{reward_profile}"
 
 step_time = 200
 
@@ -29,16 +30,16 @@ step_time = 200
 rates_delay_loss = {}
 
 traces = ["./traces/WIRED_900kbps.json",
-          "./traces/WIRED_35mbps.json",
           "./traces/WIRED_200kbps.json",
-          "./traces/4G_700kbps.json",
-          "./traces/4G_3mbps.json",
-          "./traces/4G_500kbps.json",
+          # "./traces/WIRED_35mbps.json",
+          # "./traces/4G_700kbps.json",
+          # "./traces/4G_3mbps.json",
+          # "./traces/4G_500kbps.json",
            ]
 
 
 
-for i in range(6):
+for i in range(len(traces)):
     
     print("Testing..")
     
@@ -46,7 +47,7 @@ for i in range(6):
     print("Input trace: ", trace)
     rates_delay_loss[trace] = defaultdict(list)
     
-    env = GymEnvSimple(step_time=step_time, input_trace=trace,  normalize_states=True, reward_profile=0)
+    env = GymEnvSimple(step_time=step_time, input_trace=trace,  normalize_states=True, reward_profile=reward_profile)
     model = SAC.load(model_folder, env=env)
 
     obs = env.reset()
