@@ -15,3 +15,4 @@ tensorboard_logs_mp/
 data_mp/
 data/
 core
+logs/
