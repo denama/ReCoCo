@@ -48,7 +48,7 @@ def log_to_linear(value):
 
 class GymEnvSimple(gym.Env):
 
-    def __init__(self, step_time=200, input_trace="./big_trace/big_trace2.json", normalize_states=True):
+    def __init__(self, step_time=200, input_trace="./big_trace/big_trace2.json", normalize_states=True, reward_profile=0):
         super(GymEnvSimple, self).__init__()
 
         self.gym_env = None     
@@ -269,10 +269,17 @@ class GymEnvSimple(gym.Env):
             return reward
 
         # Covers cases for 0 <= utilization <= 1
-        if (bandwidth_util >= 0) and (bandwidth_util <= 0.65):
-            Ru = (1.538 * bandwidth_util) - 1
-        elif (bandwidth_util > 0.65) and (bandwidth_util <= 1):
-            Ru = -8.2 * ((bandwidth_util - 1) ** 2) + 1
+        if reward_profile=0:
+            if (bandwidth_util >= 0) and (bandwidth_util <= 0.65):
+                Ru = (1.538 * bandwidth_util) - 1
+            elif (bandwidth_util > 0.65) and (bandwidth_util <= 1):
+                Ru = -8.2 * ((bandwidth_util - 1) ** 2) + 1
+        else:
+            if (bandwidth_util >= 0) and (bandwidth_util <= 0.65):
+                Ru = (1.538 * bandwidth_util) - 1
+            elif (bandwidth_util > 0.65) and (bandwidth_util <= 1):
+                Ru = -8.2 * ((bandwidth_util - 1) ** 2) + 1
+        
         Ru = round(Ru, 4)
 
         # Covers cases for delay >= 0
