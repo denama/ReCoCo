@@ -18,7 +18,7 @@ alg_name = "SAC"
 
 reward_profile = 4
 
-conf_name = "SAC_WIRED_900kbps_200_delay_False_norm_states_True_tuned_True"
+conf_name = "SAC_WIRED_900kbps_200_delay_True_norm_states_True_tuned_True"
 model_num = 150000
 model_folder = f"./data_mp/{conf_name}/{model_num}.zip"
 suffix = f"{conf_name}_reward_profile_{reward_profile}"
@@ -47,7 +47,7 @@ for i in range(len(traces)):
     print("Input trace: ", trace)
     rates_delay_loss[trace] = defaultdict(list)
     
-    env = GymEnvSimple(step_time=step_time, input_trace=trace,  normalize_states=True, reward_profile=reward_profile)
+    env = GymEnv(step_time=step_time, input_trace=trace,  normalize_states=True, reward_profile=reward_profile)
     model = SAC.load(model_folder, env=env)
 
     obs = env.reset()

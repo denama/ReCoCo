@@ -48,13 +48,14 @@ def log_to_linear(value):
 
 class GymEnv(gym.Env):
 
-    def __init__(self, step_time=200, input_trace="./big_trace/big_trace2.json", normalize_states=True):
+    def __init__(self, step_time=200, input_trace="./big_trace/big_trace2.json", normalize_states=True, reward_profile=0):
         super(GymEnv, self).__init__()
 
         self.gym_env = None     
         self.step_time = step_time
         self.input_trace = input_trace
         self.normalize_states = normalize_states
+        self.reward_profile = reward_profile
 
         trace_dir = os.path.join(os.path.dirname(__file__), "traces")
         # trace_dir = os.path.join(os.path.dirname(__file__), "gym_folder", "alphartc_gym", "tests", "data")
@@ -282,11 +283,39 @@ class GymEnv(gym.Env):
             return reward
 
         # Covers cases for 0 <= utilization <= 1
-        if (bandwidth_util >= 0) and (bandwidth_util <= 0.65):
-            Ru = (1.538 * bandwidth_util) - 1
-        elif (bandwidth_util > 0.65) and (bandwidth_util <= 1):
-            Ru = -8.2 * ((bandwidth_util - 1) ** 2) + 1
-        Ru = round(Ru, 4)
+        # Covers reward profiles: 0,1,2,3,4
+        try:
+            if self.reward_profile == 0:
+                threshold = 0.65
+                if (bandwidth_util >= 0) and (bandwidth_util <= threshold):
+                    Ru = (1.538 * bandwidth_util) - 1
+                elif (bandwidth_util > threshold) and (bandwidth_util <= 1):
+                    Ru = -8.2 * ((bandwidth_util - 1) ** 2) + 1
+            else:
+                if self.reward_profile == 1:
+                    threshold = 0.65
+                    linear_param = 1.53847
+                    quadratic_param = 8.165
+                elif self.reward_profile == 2:
+                    threshold = 0.7
+                    linear_param = 1.42857
+                    quadratic_param = 11.111
+                elif self.reward_profile == 3:
+                    threshold = 0.75
+                    linear_param = 1.33333
+                    quadratic_param = 16
+                elif self.reward_profile == 4:
+                    threshold = 0.8
+                    linear_param = 1.25
+                    quadratic_param = 25
+
+                if (bandwidth_util >= 0) and (bandwidth_util <= threshold):
+                    Ru = (linear_param * bandwidth_util) - 1
+                elif (bandwidth_util > threshold) and (bandwidth_util <= 1):
+                    Ru = quadratic_param * ((bandwidth_util - threshold) ** 2)
+
+        except ValueError:
+            print("Wrong reward profile! Available profiles: 0,1,2,3,4")
 
         # Covers cases for delay >= 0
         if (delay >= 0) and (delay <= 150):
