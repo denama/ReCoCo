@@ -16,7 +16,7 @@ import os
 save_dir = "./data"
 alg_name = "SAC"
 
-reward_profile = 4
+reward_profile = 2
 
 conf_name = "SAC_WIRED_900kbps_200_delay_True_norm_states_True_tuned_True"
 model_num = 150000
