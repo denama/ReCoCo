@@ -46,7 +46,7 @@ for i in range(6):
     print("Input trace: ", trace)
     rates_delay_loss[trace] = defaultdict(list)
     
-    env = GymEnv(step_time=step_time, input_trace=trace,  normalize_states=True)
+    env = GymEnvSimple(step_time=step_time, input_trace=trace,  normalize_states=True, reward_profile=0)
     model = SAC.load(model_folder, env=env)
 
     obs = env.reset()
