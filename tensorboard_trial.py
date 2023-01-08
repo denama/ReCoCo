@@ -1,11 +1,9 @@
 import argparse
-import os
 import numpy as np
 
-import gym
 from stable_baselines3 import A2C, PPO, SAC, TD3
-from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
-from rtc_env_sb import GymEnv
+from stable_baselines3.common.noise import NormalActionNoise
+from legacy.rtc_env_sb import GymEnv
 
 parser = argparse.ArgumentParser(description="Choose RL parameters")
 parser.add_argument("-alg", "--algorithm", help="Choose algorithm", choices=['A2C', 'PPO', 'SAC', 'TD3'], default=None, required=True)

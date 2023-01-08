@@ -12,8 +12,7 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3 import PPO, A2C, TD3, SAC
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 
-from rtc_env_sb import GymEnv
-from rtc_env_simple import GymEnvSimple
+from rtc_env import GymEnv
 
 from conf_dict_params import config_dict_grid, input_conf, hyperparams_TD3, hyperparams_SAC, hyperparams_PPO
 
@@ -54,13 +53,9 @@ def main_func(conf_dict):
     # print("Tensorboard_dir", tensorboard_dir)
     
     rates_delay_loss = {}
-    
-    
-    if delay_states:
-        env = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
-    else:
-        env = GymEnvSimple(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
-    
+
+    env = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states,
+                     reward_profile=reward_profile, delay_states=delay_states)
     num_envs = 1
     env = make_vec_env(lambda: env, n_envs=num_envs, seed=seed)
 
@@ -100,11 +95,9 @@ def main_func(conf_dict):
 
         # print(f"Testing on trace... {trace}")
         rates_delay_loss[trace][m] = defaultdict(list)
-        
-        if delay_states:
-            env_test = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
-        else:
-            env_test = GymEnvSimple(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
+
+        env_test = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states,
+                              reward_profile=reward_profile, delay_states=delay_states)
 
         # print(f"Testing model from {save_model_dir_per_num_timesteps}")
 

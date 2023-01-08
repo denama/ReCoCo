@@ -1,14 +1,7 @@
-from stable_baselines3.common.env_checker import check_env
-
-from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.vec_env import VecNormalize
-from rtc_env_sb import GymEnv
+from legacy.rtc_env_sb import GymEnv
 from stable_baselines3 import PPO, A2C, TD3, SAC
-import logging
 from collections import defaultdict
 import pickle
-
-import os
 
 # logging.basicConfig(filename='logs/check_gym_env.log', level=logging.INFO, filemode='w')
 # logging.info('Started apply model')

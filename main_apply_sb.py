@@ -1,11 +1,7 @@
-
-import gym
-import numpy as np
 import os
-from stable_baselines3 import A2C, SAC, PPO, TD3
-from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3 import PPO
 from stable_baselines3.common.evaluation import evaluate_policy
-from rtc_env_sb import GymEnv
+from legacy.rtc_env_sb import GymEnv
 
 
 #USE SAVED MODEL AND EVALUATE WITH evaluate_policy()

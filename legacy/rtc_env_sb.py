@@ -57,7 +57,7 @@ class GymEnv(gym.Env):
         self.normalize_states = normalize_states
         self.reward_profile = reward_profile
 
-        trace_dir = os.path.join(os.path.dirname(__file__), "traces")
+        trace_dir = os.path.join(os.path.dirname(__file__), "../traces")
         # trace_dir = os.path.join(os.path.dirname(__file__), "gym_folder", "alphartc_gym", "tests", "data")
         self.trace_set = glob.glob(f'{trace_dir}/**/*.json', recursive=True)
         # print("Trace set", self.trace_set)
@@ -217,6 +217,7 @@ class GymEnv(gym.Env):
 
         self.state = torch.flatten(self.state_multidim)
 
+        print(self.state)
 
         # logging.info(
         #     f"Receiving rate state | Delay state | Loss ratio state | Latest prediction"

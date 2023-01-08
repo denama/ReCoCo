@@ -2,7 +2,7 @@ from stable_baselines3.common.env_checker import check_env
 
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecNormalize
-from rtc_env_sb import GymEnv
+from rtc_env import GymEnv
 from stable_baselines3 import PPO, A2C, TD3, SAC
 import logging
 from collections import defaultdict

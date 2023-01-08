@@ -2,8 +2,7 @@ from stable_baselines3.common.env_checker import check_env
 
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecNormalize
-from rtc_env_sb import GymEnv
-from rtc_env_simple import GymEnvSimple
+from rtc_env import GymEnv
 from stable_baselines3 import PPO, A2C, TD3, SAC
 import logging
 from collections import defaultdict
@@ -27,11 +26,11 @@ traces = [
           "./traces/trace_300k.json",
            ]
 
+#Test best conf
 list_conf_names = [d[200] for d in best_models_dict.values()]
 print("Len list_conf_names: ", len(list_conf_names)) 
 
 for conf_name in list_conf_names:
-    
 
     conf_dict = conf_to_dict(conf_name)
 
@@ -59,10 +58,8 @@ for conf_name in list_conf_names:
         print("Testing on trace: ", trace)
         rates_delay_loss[trace] = defaultdict(list)
 
-        if delay_states:
-            env = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
-        else:
-            env = GymEnvSimple(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)  
+        env = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states,
+                     reward_profile=reward_profile, delay_states=delay_states)
 
         if alg_name == "PPO":
             model = PPO.load(model_folder, env=env)

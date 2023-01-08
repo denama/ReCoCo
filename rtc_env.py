@@ -46,16 +46,23 @@ def log_to_linear(value):
     return np.exp(log_bwe) * UNIT_M
 
 
-class GymEnvSimple(gym.Env):
+class GymEnv(gym.Env):
 
-    def __init__(self, step_time=200, input_trace="./big_trace/big_trace2.json", normalize_states=True, reward_profile=0):
-        super(GymEnvSimple, self).__init__()
+    def __init__(self,
+                 step_time=200,
+                 input_trace="./big_trace/big_trace2.json",
+                 normalize_states=True,
+                 reward_profile=0,
+                 delay_states=True
+                 ):
+        super(GymEnv, self).__init__()
 
         self.gym_env = None     
         self.step_time = step_time
         self.input_trace = input_trace
         self.normalize_states = normalize_states
         self.reward_profile = reward_profile
+        self.delay_states = delay_states
 
         trace_dir = os.path.join(os.path.dirname(__file__), "traces")
         # trace_dir = os.path.join(os.path.dirname(__file__), "gym_folder", "alphartc_gym", "tests", "data")
@@ -72,19 +79,26 @@ class GymEnvSimple(gym.Env):
 
         #state space - defined by 4 variables that go from 0 to 1 (continuous states)
         #States: receiving rate, average delay, loss ratio, latest prediction
-        self.state_dim = 4
-        self.state_length = 1
+
+        if self.delay_states:
+            self.state_dim = 4
+            self.state_length = 5
+        else:
+            self.state_dim = 4
+            self.state_length = 1
+
         if self.normalize_states:
             self.states_low = 0.0
             self.states_high = 1.0
         else:
             self.states_low = 0.0
             self.states_high = self.high
-        
+
+
         self.observation_space = spaces.Box(low=self.states_low, high=self.states_high,
                                             shape=(self.state_dim*self.state_length, ),
                                             dtype=np.float32)
-        # print("Observation space", self.observation_space)
+
         self.list_of_packets = []
 
 
@@ -115,7 +129,7 @@ class GymEnvSimple(gym.Env):
         #Initialize a new **empty** packet record
         self.packet_record = PacketRecord()
 
-        # self.state_multidim = torch.zeros(size=(self.state_dim, self.state_length))
+        self.state_multidim = torch.zeros(size=(self.state_dim, self.state_length))
         self.state = torch.zeros(size=(self.state_dim*self.state_length, ))
         self.make_bandwidth_series()
 
@@ -184,24 +198,42 @@ class GymEnvSimple(gym.Env):
         self.sending_rate = self.packet_record.calculate_sending_rate(interval=self.step_time)
 
         # calculate state
+        # print("Step time ", self.step_time)
         self.receiving_rate = self.packet_record.calculate_receiving_rate(interval=self.step_time)
         self.delay = self.packet_record.calculate_average_delay(interval=self.step_time)
         self.loss_ratio = self.packet_record.calculate_loss_ratio(interval=self.step_time)
         latest_prediction = self.packet_record.calculate_latest_prediction()
         self.log_prediction = linear_to_log(latest_prediction)
-        
-        if self.normalize_states:
-            self.state[0] = torch.from_numpy(np.asarray(linear_to_log(self.receiving_rate)))
-            self.state[1] = min(self.delay/1000, 1)
-            self.state[2] = self.loss_ratio
-            self.state[3] = torch.from_numpy(np.asarray(linear_to_log(latest_prediction)))
+
+        self.state_multidim = self.state_multidim.clone().detach()
+        self.state_multidim = torch.roll(self.state_multidim, -1, dims=-1)
+
+        if self.delay_states:
+            if self.normalize_states:
+                self.state_multidim[0, -1] = torch.from_numpy(np.asarray(linear_to_log(self.receiving_rate)))
+                self.state_multidim[1, -1] = min(self.delay/1000, 1)
+                self.state_multidim[2, -1] = self.loss_ratio
+                self.state_multidim[3, -1] = torch.from_numpy(np.asarray(linear_to_log(latest_prediction)))
+            else:
+                self.state_multidim[0, -1] = self.receiving_rate / 1000
+                self.state_multidim[1, -1] = self.delay
+                self.state_multidim[2, -1] = self.loss_ratio
+                self.state_multidim[3, -1] = torch.from_numpy(latest_prediction)
+
+            self.state = torch.flatten(self.state_multidim)
+
         else:
-            self.state[0] = self.receiving_rate / 1000
-            self.state[1] = self.delay
-            self.state[2] = self.loss_ratio
-            self.state[3] = torch.from_numpy(latest_prediction)
-        
-        # print("State", self.state[3])
+            if self.normalize_states:
+                self.state[0] = torch.from_numpy(np.asarray(linear_to_log(self.receiving_rate)))
+                self.state[1] = min(self.delay / 1000, 1)
+                self.state[2] = self.loss_ratio
+                self.state[3] = torch.from_numpy(np.asarray(linear_to_log(latest_prediction)))
+            else:
+                self.state[0] = self.receiving_rate / 1000
+                self.state[1] = self.delay
+                self.state[2] = self.loss_ratio
+                self.state[3] = torch.from_numpy(latest_prediction)
+
         # logging.info(
         #     f"Receiving rate state | Delay state | Loss ratio state | Latest prediction"
         #     f"      \n{states[0]},          {states[1]},            {states[2]},            {states[3]}  ")
@@ -216,7 +248,6 @@ class GymEnvSimple(gym.Env):
 
         self.time_step_in_epoch += 1
 
-
         return np.array(self.state), reward, done, {}
 
     def close(self):
@@ -230,7 +261,7 @@ class GymEnvSimple(gym.Env):
         delay = self.delay
         loss_ratio = self.loss_ratio
         
-        if bandwidth <= 0.00001:
+        if (bandwidth <= 0.00001):
             bandwidth_util = 0
         else:
             bandwidth_util = receiving_rate / bandwidth
@@ -239,7 +270,7 @@ class GymEnvSimple(gym.Env):
         #              f"bandwidth: {bandwidth}, delay: {delay}, U: {round(receiving_rate / bandwidth, 2)}, "
         #              f"loss ratio: {loss_ratio}")
 
-        #forbidden values - force reward -1
+        #forbidden values - forse reward -1
         if (delay < 0) \
                 or (loss_ratio > 1) \
                 or (loss_ratio < 0) \
@@ -293,17 +324,14 @@ class GymEnvSimple(gym.Env):
                     threshold = 0.8
                     linear_param = 1.25
                     quadratic_param = 25
-                    
+
                 if (bandwidth_util >= 0) and (bandwidth_util <= threshold):
                     Ru = (linear_param * bandwidth_util) - 1
                 elif (bandwidth_util > threshold) and (bandwidth_util <= 1):
                     Ru = quadratic_param * ((bandwidth_util - threshold) ** 2)
-                    
+
         except ValueError:
             print("Wrong reward profile! Available profiles: 0,1,2,3,4")
-
-
-        Ru = round(Ru, 4)
 
         # Covers cases for delay >= 0
         if (delay >= 0) and (delay <= 150):
@@ -327,15 +355,13 @@ class GymEnvSimple(gym.Env):
 
         if loss_ratio > 0:
             reward = 0.333*Ru + 0.333*Rd + 0.333*Rl
-            # print("Loss ratio larger than 0")
         else:
             reward = (2/5) * Ru + (2/5) * Rd + (1/5) * Rl
-        
+            
         self.Ru = Ru
         self.Rd = Rd
         self.Rl = Rl
 
-        # reward = linear_to_log(self.receiving_rate) - min(self.delay/1000, 1) - self.loss_ratio
         return reward
 
 
