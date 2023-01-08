@@ -1,12 +1,16 @@
 import torch
 
 
-traces = ["./traces/WIRED_900kbps.json",
-          "./traces/WIRED_35mbps.json",
-          "./traces/WIRED_200kbps.json", 
-          "./traces/4G_700kbps.json",
-          "./traces/4G_3mbps.json",
-          "./traces/4G_500kbps.json",
+traces = [
+          # "./traces/WIRED_900kbps.json",
+          # "./traces/WIRED_35mbps.json",
+          # "./traces/WIRED_200kbps.json", 
+          # "./traces/4G_700kbps.json",
+          # "./traces/4G_3mbps.json",
+          # "./traces/4G_500kbps.json",
+          "./traces/5G_12mbps.json",
+          "./traces/5G_13mbps.json",
+          "./traces/trace_300k.json", 
           # "./big_trace/big_trace2.json",
            ]
 
@@ -18,12 +22,13 @@ input_conf = {
     "save_dir": "./data_mp",
     "tensorboard_dir": f"./tensorboard_logs_mp",
     "rates_delay_loss_dir": f"./output_mp",
+    "seed": 22,
 }
 
 
 config_dict_grid = {
     "trace": traces,
-    "delay_states": [False],
+    "delay_states": [False, True],
     "normalize_states": [True],
     "step_time": [200],
     "alg": ["SAC", "TD3"],

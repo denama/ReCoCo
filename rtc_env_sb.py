@@ -132,7 +132,7 @@ class GymEnv(gym.Env):
         time = [0] + list(df["duration"].cumsum())
         capacities = [df["capacity"].iloc[0]] + list(df["capacity"])
         s = pd.Series(index=pd.to_datetime(time, unit="ms"), data=capacities)
-        self.capacities = s.resample(f"{self.step_time}ms").ffill()
+        self.capacities = s.resample(f"{self.step_time}ms").bfill()
         # print(f"Num steps in one trace: {len(self.capacities)}")
 
     def get_bandwidth(self):
@@ -245,7 +245,7 @@ class GymEnv(gym.Env):
         delay = self.delay
         loss_ratio = self.loss_ratio
         
-        if bandwidth <= 0.00001:
+        if (bandwidth <= 0.00001):
             bandwidth_util = 0
         else:
             bandwidth_util = receiving_rate / bandwidth
@@ -341,8 +341,11 @@ class GymEnv(gym.Env):
             reward = 0.333*Ru + 0.333*Rd + 0.333*Rl
         else:
             reward = (2/5) * Ru + (2/5) * Rd + (1/5) * Rl
+            
+        self.Ru = Ru
+        self.Rd = Rd
+        self.Rl = Rl
 
-        # reward = linear_to_log(self.receiving_rate) - min(self.delay/1000, 1) - self.loss_ratio
         return reward
 
 

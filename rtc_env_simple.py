@@ -104,8 +104,6 @@ class GymEnvSimple(gym.Env):
         self.gym_env = gym_file.Gym()
         
         self.current_trace = self.input_trace
-            
-        # print("Resetting environment: Working with trace: ", self.current_trace)
 
         #Do the simulation with the current trace
         logging.info(f"{self.current_trace.split('/')[-1]}")
@@ -134,7 +132,7 @@ class GymEnvSimple(gym.Env):
         time = [0] + list(df["duration"].cumsum())
         capacities = [df["capacity"].iloc[0]] + list(df["capacity"])
         s = pd.Series(index=pd.to_datetime(time, unit="ms"), data=capacities)
-        self.capacities = s.resample(f"{self.step_time}ms").ffill()
+        self.capacities = s.resample(f"{self.step_time}ms").bfill()
         # print(f"Num steps in one trace: {len(self.capacities)}")
 
     def get_bandwidth(self):
@@ -332,6 +330,10 @@ class GymEnvSimple(gym.Env):
             # print("Loss ratio larger than 0")
         else:
             reward = (2/5) * Ru + (2/5) * Rd + (1/5) * Rl
+        
+        self.Ru = Ru
+        self.Rd = Rd
+        self.Rl = Rl
 
         # reward = linear_to_log(self.receiving_rate) - min(self.delay/1000, 1) - self.loss_ratio
         return reward

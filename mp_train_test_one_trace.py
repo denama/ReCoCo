@@ -40,7 +40,9 @@ def main_func(conf_dict):
     trace_name = trace.split("/")[2].split(".")[0]
     # print("Input trace: ", trace)
     
-    conf_params = f"{alg_name}_{trace_name}_{step_time}_delay_{delay_states}_norm_states_{normalize_states}_tuned_{tuned}_reward_profile_{reward_profile}"
+    seed = input_conf["seed"]
+    
+    conf_params = f"{alg_name}_{trace_name}_{step_time}_delay_{delay_states}_norm_states_{normalize_states}_tuned_{tuned}_reward_profile_{reward_profile}_seed_{seed}"
     
     tensorboard_dir = os.path.join(input_conf["tensorboard_dir"], conf_params)
     save_subfolder = conf_params
@@ -48,18 +50,19 @@ def main_func(conf_dict):
     save_dir = input_conf["save_dir"]
     num_timesteps = input_conf["num_timesteps"]
     num_episodes = input_conf["num_episodes"]
+    
     # print("Tensorboard_dir", tensorboard_dir)
     
     rates_delay_loss = {}
     
     
     if delay_states:
-        env = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states)
+        env = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
     else:
         env = GymEnvSimple(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
     
     num_envs = 1
-    env = make_vec_env(lambda: env, n_envs=num_envs, seed=42)
+    env = make_vec_env(lambda: env, n_envs=num_envs, seed=seed)
 
     save_model_dir = os.path.join(save_dir, save_subfolder)
     # print("I will save model in: ", save_model_dir)
@@ -99,7 +102,7 @@ def main_func(conf_dict):
         rates_delay_loss[trace][m] = defaultdict(list)
         
         if delay_states:
-            env_test = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states)
+            env_test = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
         else:
             env_test = GymEnvSimple(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile)
 
@@ -127,6 +130,9 @@ def main_func(conf_dict):
             rates_delay_loss[trace][m]["loss_ratio"].append(env_test.loss_ratio)
             rates_delay_loss[trace][m]["log_prediction"].append(float(env_test.log_prediction))
             rates_delay_loss[trace][m]["reward"].append(reward)
+            rates_delay_loss[trace][m]["Ru"].append(env_test.Ru)
+            rates_delay_loss[trace][m]["Rd"].append(env_test.Rd)
+            rates_delay_loss[trace][m]["Rl"].append(env_test.Rl)
             cumulative_reward += reward
 
             if done:
@@ -154,8 +160,9 @@ if __name__ == "__main__":
     
     # keys, values = zip(*config_dict_grid.items())
     # permutation_dicts = [dict(zip(keys, v)) for v in itertools.product(*values)]
+    # print(f"Doing all permutation dicts drom config file, len: {len(permutation_dicts)}")
 
-    pickle_perm_dicts = "./permutation_dicts_reward_profiles.pkl"
+    pickle_perm_dicts = "./best_algs_correct_2.pkl"
     permutation_dicts = pd.read_pickle(pickle_perm_dicts)
     print(f"Doing {pickle_perm_dicts}, len: {len(permutation_dicts)}")
 
