@@ -1,3 +1,9 @@
+## About
+**ReCoCo** is a Reinforcement-learning based Congestion Control algorithm for Real-time applications (video conferencing, cloud gaming).
+
+## System overview
+![Schema of the system](scheme/scheme_rl_system.drawio3.drawio.png)
+
 ## Scripts
 
 - train_test_one_trace: train on one trace for 10000 samples, 10 times (fake episodes). Every episode save model, test and record reward (rates_delay_loss[trace][m]). You specify the trace and the algorithm and the number of environments for vectorization (note: TD3 does not support vectorization)
