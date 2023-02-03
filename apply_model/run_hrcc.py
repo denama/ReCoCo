@@ -51,7 +51,7 @@ for current_trace in list_of_traces:
             BWE_hrcc.report_states(pkt)
 
         bandwidth_prediction_hrcc = BWE_hrcc.get_estimated_bandwidth()
-        # print(bandwidth_prediction_hrcc)
+        print("Final banwidth prediction: ", bandwidth_prediction_hrcc)
         # Calculate rate, delay, loss
         sending_rate = BWE_hrcc.packet_record.calculate_sending_rate(interval=step_time)
         receiving_rate = BWE_hrcc.receiving_rate
@@ -77,7 +77,7 @@ for current_trace in list_of_traces:
             print(f"DONE WITH THE TRACE. I reached i {i}")
             break
 
-    with open(f"results_hrcc/rates_delay_loss_hrcc_{trace_name}.pickle", "wb") as f:
+    with open(f"results_hrcc/rates_delay_loss_hrcc_{trace_name}_bla.pickle", "wb") as f:
         pickle.dump(rates_delay_loss, f)
 
 
