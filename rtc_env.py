@@ -53,7 +53,8 @@ class GymEnv(gym.Env):
                  input_trace="./big_trace/big_trace2.json",
                  normalize_states=True,
                  reward_profile=0,
-                 delay_states=True
+                 delay_states=True,
+                 random_trace=False
                  ):
         super(GymEnv, self).__init__()
 
@@ -63,12 +64,10 @@ class GymEnv(gym.Env):
         self.normalize_states = normalize_states
         self.reward_profile = reward_profile
         self.delay_states = delay_states
+        self.random_trace = random_trace
 
         trace_dir = os.path.join(os.path.dirname(__file__), "traces")
-        # trace_dir = os.path.join(os.path.dirname(__file__), "gym_folder", "alphartc_gym", "tests", "data")
         self.trace_set = glob.glob(f'{trace_dir}/**/*.json', recursive=True)
-        # print("Trace set", self.trace_set)
-        # self.current_trace = random.choice(self.trace_set)
 
         #Actions - actions can be from 0 to 1 (continuous actions) - trying to rescale to -1 to 1
         self.action_dim = 1
@@ -117,14 +116,19 @@ class GymEnv(gym.Env):
     def reset(self):
         self.gym_env = gym_file.Gym()
         
-        self.current_trace = self.input_trace
+        if self.random_trace:
+            self.current_trace = random.choice(self.trace_set)
+        else:
+            self.current_trace = self.input_trace
+            
+        # print("Working with trace", self.current_trace)
 
         #Do the simulation with the current trace
         logging.info(f"{self.current_trace.split('/')[-1]}")
         
         self.gym_env.reset(trace_path=self.current_trace,
-            report_interval_ms=self.step_time,
-            duration_time_ms=0)
+                           report_interval_ms=self.step_time,
+                           duration_time_ms=0)
 
         #Initialize a new **empty** packet record
         self.packet_record = PacketRecord()

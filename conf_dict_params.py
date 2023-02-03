@@ -1,4 +1,6 @@
 import torch
+import itertools
+import pandas as pd
 
 
 traces = [
@@ -8,9 +10,9 @@ traces = [
           # "./traces/4G_700kbps.json",
           # "./traces/4G_3mbps.json",
           # "./traces/4G_500kbps.json",
-          "./traces/5G_12mbps.json",
-          "./traces/5G_13mbps.json",
-          "./traces/trace_300k.json", 
+          # "./traces/5G_12mbps.json",
+          # "./traces/5G_13mbps.json",
+          # "./traces/trace_300k.json", 
           # "./big_trace/big_trace2.json",
            ]
 
@@ -22,12 +24,12 @@ input_conf = {
     "save_dir": "./data_mp",
     "tensorboard_dir": f"./tensorboard_logs_mp",
     "rates_delay_loss_dir": f"./output_mp",
-    "seed": 22,
+    # "seed": 22,
 }
 
 
 config_dict_grid = {
-    "trace": traces,
+    "trace_path": traces,
     "delay_states": [False, True],
     "normalize_states": [True],
     "step_time": [200],
@@ -35,6 +37,14 @@ config_dict_grid = {
     "tuned": [False, True],
     "reward_profile": [0,1,2,3,4],
 }
+
+#If you want to do all combinations from config_dict_grid
+# keys, values = zip(*config_dict_grid.items())
+# permutation_dicts = [dict(zip(keys, v)) for v in itertools.product(*values)]
+
+#Your own permutation dict
+pickle_perm_dicts = "./diff_random_seeds.pkl"
+permutation_dicts = pd.read_pickle(pickle_perm_dicts)
 
 
 #TD3

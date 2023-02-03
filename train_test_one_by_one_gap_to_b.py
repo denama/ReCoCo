@@ -22,23 +22,25 @@ from best_algs import one_conf_models_dict
 
 
 #-------------------------
-#Curriculum based on Denas order
+#Curriculum based on gap to baseline
 traces = [
     "./traces/4G_3mbps.json",
-    "./traces/5G_13mbps.json",
-    "./traces/5G_12mbps.json",
-    "./traces/WIRED_35mbps.json",
-    "./traces/4G_500kbps.json",
-    "./traces/4G_700kbps.json",
     "./traces/trace_300k.json",
+    "./traces/5G_12mbps.json",
+    "./traces/5G_13mbps.json",
     "./traces/WIRED_900kbps.json",
+    "./traces/WIRED_35mbps.json",
+    "./traces/4G_700kbps.json",
     "./traces/WIRED_200kbps.json",
+    "./traces/4G_500kbps.json",
            ]
 
 
-tensorboard_dir = "./tensorboard_logs/denas_order_v4/"
-save_subfolder = "denas_order_v4"
-suffix = f"denas_order_v4"
+
+
+tensorboard_dir = "./tensorboard_logs/gap_to_baseline_v4/"
+save_subfolder = "gap_to_baseline_v4"
+suffix = f"gap_to_baseline_v4"
 
 seed = 4
 
@@ -66,7 +68,6 @@ print(f"Conf: delay states {delay_states}, norm states {normalize_states}, step 
 for i in range(len(traces)):
     
     print("------------")
-    print("I is: ", i, " !!!!")
     trace_path = traces[i]
     trace_name = trace_path.split("/")[2].split(".")[0]
     print("Input trace: ", trace_path, " trace name: ", trace_name)

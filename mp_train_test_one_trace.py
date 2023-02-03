@@ -14,7 +14,7 @@ from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckA
 
 from rtc_env import GymEnv
 
-from conf_dict_params import config_dict_grid, input_conf, hyperparams_TD3, hyperparams_SAC, hyperparams_PPO
+from conf_dict_params import config_dict_grid, input_conf, hyperparams_TD3, hyperparams_SAC, hyperparams_PPO, permutation_dicts
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -25,23 +25,22 @@ warnings.filterwarnings("ignore")
 
 def main_func(conf_dict):
     
-    # print(conf_dict)
-    
     #Parse conf_dict
-    trace = conf_dict["trace"]
+    trace = conf_dict["trace_path"]
     delay_states = conf_dict["delay_states"]
     normalize_states = conf_dict["normalize_states"]
     step_time = conf_dict["step_time"]
     alg_name = conf_dict["alg"]
     tuned = conf_dict["tuned"]
     reward_profile = conf_dict["reward_profile"]
+    seed = conf_dict["seed"]
     
     trace_name = trace.split("/")[2].split(".")[0]
-    # print("Input trace: ", trace)
-    
-    seed = input_conf["seed"]
+    print("Input trace: ", trace)
     
     conf_params = f"{alg_name}_{trace_name}_{step_time}_delay_{delay_states}_norm_states_{normalize_states}_tuned_{tuned}_reward_profile_{reward_profile}_seed_{seed}"
+    
+    print(f"Doing conf {conf_params}")
     
     tensorboard_dir = os.path.join(input_conf["tensorboard_dir"], conf_params)
     save_subfolder = conf_params
@@ -60,7 +59,7 @@ def main_func(conf_dict):
     env = make_vec_env(lambda: env, n_envs=num_envs, seed=seed)
 
     save_model_dir = os.path.join(save_dir, save_subfolder)
-    # print("I will save model in: ", save_model_dir)
+    print("I will save model in: ", save_model_dir)
 
     #Define model
     if alg_name == "PPO":
@@ -99,7 +98,7 @@ def main_func(conf_dict):
         env_test = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states,
                               reward_profile=reward_profile, delay_states=delay_states)
 
-        # print(f"Testing model from {save_model_dir_per_num_timesteps}")
+        print(f"Testing model from {save_model_dir_per_num_timesteps}")
 
         if alg_name == "PPO":
             model_test = PPO.load(save_model_dir_per_num_timesteps, env=env_test)
@@ -155,9 +154,10 @@ if __name__ == "__main__":
     # permutation_dicts = [dict(zip(keys, v)) for v in itertools.product(*values)]
     # print(f"Doing all permutation dicts drom config file, len: {len(permutation_dicts)}")
 
-    pickle_perm_dicts = "./best_algs_correct_2.pkl"
-    permutation_dicts = pd.read_pickle(pickle_perm_dicts)
-    print(f"Doing {pickle_perm_dicts}, len: {len(permutation_dicts)}")
+    # pickle_perm_dicts = "./diff_random_seeds.pkl"
+    # permutation_dicts = pd.read_pickle(pickle_perm_dicts)
+    print(f"Doing {len(permutation_dicts)} permutation dicts")
+    print(permutation_dicts)
 
     n_cores = input_conf["n_cores"]
     pool = multiprocessing.Pool(processes=n_cores)
