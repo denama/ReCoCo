@@ -22,7 +22,7 @@ from best_algs import one_conf_models_dict
 
 
 #-------------------------
-#Curriculum based on Denas order
+#Curriculum based on Denas order (reward-based)
 traces = [
     "./traces/4G_3mbps.json",
     "./traces/5G_13mbps.json",
