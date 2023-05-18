@@ -16,3 +16,5 @@ data_mp/
 data/
 core
 logs/
+.*
+!/.gitignore
