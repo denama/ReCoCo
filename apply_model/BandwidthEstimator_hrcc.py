@@ -118,9 +118,14 @@ class Estimator(object):
         if self.time_to_guide == True:
             action, _, _, _ = self.ppo.policy.forward(self.state)
             self.bandwidth_prediction = self.gcc_decision * pow(2, (2 * action - 1))
+            print("Final bandwidth pred: ", self.bandwidth_prediction,
+                  "GCC decision: ", self.gcc_decision,
+                  "Coefficient: ", pow(2, (2 * action - 1)))
             self.gcc_estimator.change_bandwidth_estimation(self.bandwidth_prediction)
             self.time_to_guide = False
+            print("Im taking RL decision")
         else:
             self.bandwidth_prediction = self.gcc_decision
+            print("Im taking GCC decision")
 
         return self.bandwidth_prediction
