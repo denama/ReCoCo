@@ -6,18 +6,22 @@ import pickle
 import os
 
 
-traces = [
-          "./traces/WIRED_900kbps.json",
-          "./traces/WIRED_200kbps.json",
-          "./traces/WIRED_35mbps.json",
-          "./traces/4G_700kbps.json",
-          "./traces/4G_3mbps.json",
-          "./traces/4G_500kbps.json",
-          "./traces/5G_12mbps.json",
-          "./traces/5G_13mbps.json",
-          "./traces/trace_300k.json",
-           ]
+# traces = [
+#           "./traces/WIRED_900kbps.json",
+#           "./traces/WIRED_200kbps.json",
+#           "./traces/WIRED_35mbps.json",
+#           "./traces/4G_700kbps.json",
+#           "./traces/4G_3mbps.json",
+#           "./traces/4G_500kbps.json",
+#           "./traces/5G_12mbps.json",
+#           "./traces/5G_13mbps.json",
+#           "./traces/trace_300k.json",
+#            ]
 
+traces = ["./new_data/Norway_3G_data_json/bus_2010-09-28_1407CEST.json"]
+
+parent_folder = "./new_data/logs_all_4G_Ghent_json"
+# traces = [os.path.join(parent_folder, log_file) for log_file in os.listdir(parent_folder)]
 
 model_folder = os.path.join("./data", "model_train_bla.zip")
 
@@ -35,12 +39,14 @@ suffix = "bla"
 rates_delay_loss = {}
 
 
-for i in range(1):
+for i in range(len(traces)):
 
     print(f"Trace {i+1}/{len(traces)}...")
     trace = traces[i]
     print("Testing on trace: ", trace)
     rates_delay_loss[trace] = defaultdict(list)
+
+    # suffix = "bla_" + os.path.basename(trace).split(".")[0]
 
 
     env = GymEnv(step_time=step_time, input_trace=trace, normalize_states=normalize_states, reward_profile=reward_profile,
@@ -54,7 +60,7 @@ for i in range(1):
         model = TD3.load(model_folder, env=env)
 
     obs = env.reset()
-    n_steps=2000
+    n_steps = 2000
     cumulative_reward = 0
     avg_reward = 0
 
@@ -69,9 +75,9 @@ for i in range(1):
         rates_delay_loss[trace]["loss_ratio"].append(env.loss_ratio)
         rates_delay_loss[trace]["log_prediction"].append(float(env.log_prediction))
         rates_delay_loss[trace]["reward"].append(reward)
-        rates_delay_loss[trace]["Ru"].append(env.Ru)
-        rates_delay_loss[trace]["Rd"].append(env.Rd)
-        rates_delay_loss[trace]["Rl"].append(env.Rl)
+        # rates_delay_loss[trace]["Ru"].append(env.Ru)
+        # rates_delay_loss[trace]["Rd"].append(env.Rd)
+        # rates_delay_loss[trace]["Rl"].append(env.Rl)
         cumulative_reward += reward
 
         if done:

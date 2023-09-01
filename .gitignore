@@ -18,3 +18,4 @@ core
 logs/
 .*
 !/.gitignore
+new_data/logs_all_4G_Ghent/

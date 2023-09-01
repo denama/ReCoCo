@@ -259,6 +259,7 @@ class GymEnv(gym.Env):
 
 
     def calculate_reward(self):
+
         sending_rate = self.sending_rate / 1000  #from bps in kbps
         bandwidth = self.current_bandwidth  #already in kbps
         receiving_rate = self.receiving_rate / 1000  #from bps in kbps
@@ -270,9 +271,9 @@ class GymEnv(gym.Env):
         else:
             bandwidth_util = receiving_rate / bandwidth
 
-        # logging.info(f"Sending rate: {sending_rate}, Receiving rate: {receiving_rate}, "
-        #              f"bandwidth: {bandwidth}, delay: {delay}, U: {round(receiving_rate / bandwidth, 2)}, "
-        #              f"loss ratio: {loss_ratio}")
+        logging.info(f"Sending rate: {sending_rate}, Receiving rate: {receiving_rate}, "
+                     f"bandwidth: {bandwidth}, delay: {delay}, U: {round(receiving_rate / bandwidth, 2)}, "
+                     f"loss ratio: {loss_ratio}")
 
         #forbidden values - forse reward -1
         if (delay < 0) \
@@ -283,6 +284,7 @@ class GymEnv(gym.Env):
             # logging.info(f"Unallowed values for delay, loss or bandwidth util - delay: {delay},"
             #              f"loss_ratio: {loss_ratio}, util: {bandwidth_util}")
             reward = -1
+            # print("Im in delay < 0")
             return reward
 
         #force reward -1 if any of these is true
@@ -292,6 +294,7 @@ class GymEnv(gym.Env):
                 (loss_ratio > 0.2):
             # logging.info("Conditioned reward -1")
             reward = -1
+            # print("Im in rr > bandwidth")
             return reward
 
         #force reward 1, if ALL of these are true
@@ -299,8 +302,10 @@ class GymEnv(gym.Env):
                 (delay < 30) and \
                 (bandwidth_util > 0.9):
             # logging.info("Conditioned reward 1")
+            # print("Im in reward=1")
             reward = 1
             return reward
+
 
         # Covers cases for 0 <= utilization <= 1
         # Covers reward profiles: 0,1,2,3,4
