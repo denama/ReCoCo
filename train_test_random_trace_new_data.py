@@ -1,4 +1,4 @@
- from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.env_checker import check_env
 
 from collections import defaultdict
 import pickle
@@ -20,28 +20,38 @@ from best_algs import one_conf_models_dict
 
 
 
-tensorboard_dir = f"./tensorboard_logs/random_traces_v6/"
-save_subfolder = f"random_traces_v6"
-suffix = f"random_traces_v6"
+tensorboard_dir = f"./tensorboard_logs/random_traces_ghent/"
+save_subfolder = f"random_traces_ghent"
+suffix = f"random_traces_ghent"
 
 num_timesteps = input_conf["num_timesteps"]
-num_episodes = 270
+num_episodes = 90
 continue_training = True
-model_to_continue_from = "490000.zip"
-seed = 6 
+model_to_continue_from = "100000.zip"
+start_counter = 10
+if not continue_training:
+    start_counter = 0
+seed = 1 
 
 save_dir = "./data"
 rates_delay_loss = {}
 
-list_conf_names = [d[200] for d in one_conf_models_dict.values()]
-conff = conf_to_dict(list_conf_names[0])
+# list_conf_names = [d[200] for d in one_conf_models_dict.values()]
+# conff = conf_to_dict(list_conf_names[0])
 
-delay_states = conff["delay_states"]
-normalize_states = conff["normalize_states"]
-step_time = conff["step_time"]
-alg = conff["alg"]
-tuned = conff["tuned"]
-reward_profile = conff["reward_profile"]
+# delay_states = conff["delay_states"]
+# normalize_states = conff["normalize_states"]
+# step_time = conff["step_time"]
+# alg = conff["alg"]
+# tuned = conff["tuned"]
+# reward_profile = conff["reward_profile"]
+
+delay_states = True
+normalize_states = True
+step_time = 200
+alg = "TD3"
+tuned = False
+reward_profile = 0
 
 
 print(f"Conf: delay states {delay_states}, norm states {normalize_states}, step time {step_time}, alg {alg}, tuned {tuned}, reward profile {reward_profile}, seed {seed}")
@@ -91,13 +101,14 @@ else:
 
 obs = env.reset()
 
-trace = "./traces/WIRED_900kbps.json"
+trace = "./new_data/logs_all_4G_Ghent_json/report_bicycle_0001.json"
+n_steps = 2700
 rates_delay_loss[trace] = {}
 
 print("Learning..")
 
 #Train an episode then test it
-for m in range(49, num_episodes):
+for m in range(start_counter, start_counter+num_episodes):
     
     print("----------------")
     print(f"Training {m+1} / {num_episodes}")
@@ -106,7 +117,7 @@ for m in range(49, num_episodes):
     model.save(save_model_dir_per_num_timesteps)
 
     end = time.time()
-    print(f"Elapsed time to train {num_timesteps} steps: {round(end-start,2)} s")
+    print(f"Elapsed time until now (training {num_timesteps} steps in {m}-th episode): {round(end-start,2)} s")
     
     
     rates_delay_loss[trace][m] = defaultdict(list)
@@ -123,7 +134,6 @@ for m in range(49, num_episodes):
         model_test = TD3.load(save_model_dir_per_num_timesteps, env=env_test)
 
     obs = env_test.reset()
-    n_steps=2000
     cumulative_reward = 0
     
     for step in range(n_steps):

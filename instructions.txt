@@ -1,0 +1,11 @@
+Virtual env:
+- on Linux PC: opens when you open the project with PyCharm
+- on cluster: venv_RL_rtc
+
+1. conda activate venv_RL_rtc
+
+
+simulation_analysis/
+analyze_rates_delay_loss
+analyze_rates_delay_loss_new_data
+
