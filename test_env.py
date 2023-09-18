@@ -13,54 +13,55 @@ from best_algs import best_models_dict, one_conf_models_dict
 
 import os
 
+#Original traces
+# traces = [
+#           "./traces/WIRED_900kbps.json",
+#           "./traces/WIRED_200kbps.json",
+#           "./traces/WIRED_35mbps.json",
+#           "./traces/4G_700kbps.json",
+#           "./traces/4G_3mbps.json",
+#           "./traces/4G_500kbps.json",
+#           "./traces/5G_12mbps.json",
+#           "./traces/5G_13mbps.json",
+#           "./traces/trace_300k.json",
+#            ]
 
-traces = [
-          "./traces/WIRED_900kbps.json",
-          "./traces/WIRED_200kbps.json",
-          "./traces/WIRED_35mbps.json",
-          "./traces/4G_700kbps.json",
-          "./traces/4G_3mbps.json",
-          "./traces/4G_500kbps.json",
-          "./traces/5G_12mbps.json",
-          "./traces/5G_13mbps.json",
-          "./traces/trace_300k.json",
-           ]
+traces = \
+['./new_data/Norway_3G_data_json/bus_2010-11-10_1424CET.json',
+ './new_data/Norway_3G_data_json/bus_2010-09-30_1114CEST.json',
+ './new_data/Norway_3G_data_json/bus_2010-09-29_1622CEST.json',
+ './new_data/Norway_3G_data_json/ferry_2011-02-01_0740CET.json',
+ './new_data/Norway_3G_data_json/ferry_2011-02-01_1639CET.json',
+ './new_data/Norway_3G_data_json/ferry_2011-02-01_0629CET.json',
+ './new_data/Norway_3G_data_json/bus_2010-09-29_1823CEST.json',
+ './new_data/Norway_3G_data_json/ferry_2011-02-01_0840CET.json',
+ './new_data/Norway_3G_data_json/bus_2010-09-29_0852CEST.json']
 
-#Test best conf
-# list_conf_names = [d[200] for d in best_models_dict.values()]
-# print("Len list_conf_names: ", len(list_conf_names)) 
-list_conf_names = [d[200] for d in one_conf_models_dict.values()]
-conff = conf_to_dict(list_conf_names[0])
+#Ghent 4G
+# base_path = "./new_data/logs_all_4G_Ghent_json"
 
-delay_states = conff["delay_states"]
-normalize_states = conff["normalize_states"]
-step_time = conff["step_time"]
-alg_name = conff["alg"]
-tuned = conff["tuned"]
-reward_profile = conff["reward_profile"]
-
-
-# for conf_name in list_conf_names:
-
-    # conf_dict = conf_to_dict(conf_name)
-
-    # step_time = conf_dict["step_time"]
-    # reward_profile = conf_dict["reward_profile"]
-    # delay_states = conf_dict["delay_states"]
-    # normalize_states = conf_dict["normalize_states"]
-    # alg_name = conf_dict["alg"]
-    
-    # print("Input model: ", conf_name, " trained on trace: ", conf_dict["trace_name"])
+#Norway 3G
+# base_path = "./new_data/Norway_3G_data_json"
 
 
-# model_num = 100000
-# model_folder = f"./data_mp/{conf_name}/{model_num}.zip"
-# suffix = conf_name
+# traces = [os.path.join(base_path, file) for file in os.listdir(base_path) \
+#          if "json" in file]
 
-# model_num = 2700000
-model_num = 8
-model_folder = f"./data/denas_order_v4/{model_num}.zip"
-suffix = "denas_order_v4"
+
+print("Testing for all these traces:\n", traces)
+
+model_num = 1580000
+model_folder = f"./data/random_norway_max_400_1000/{model_num}.zip"
+suffix = "random_norway_max_400_1000"
+
+n_steps = 61118
+
+delay_states = True
+normalize_states = True
+step_time = 200
+alg_name = "TD3"
+tuned = False
+reward_profile = 0
 
 
 rates_delay_loss = {}
@@ -84,7 +85,6 @@ for i in range(len(traces)):
         model = TD3.load(model_folder, env=env)
 
     obs = env.reset()
-    n_steps=2000
     cumulative_reward = 0
     avg_reward = 0
 
@@ -99,9 +99,9 @@ for i in range(len(traces)):
         rates_delay_loss[trace]["loss_ratio"].append(env.loss_ratio)
         rates_delay_loss[trace]["log_prediction"].append(float(env.log_prediction))
         rates_delay_loss[trace]["reward"].append(reward)
-        rates_delay_loss[trace]["Ru"].append(env.Ru)
-        rates_delay_loss[trace]["Rd"].append(env.Rd)
-        rates_delay_loss[trace]["Rl"].append(env.Rl)
+        # rates_delay_loss[trace]["Ru"].append(env.Ru)
+        # rates_delay_loss[trace]["Rd"].append(env.Rd)
+        # rates_delay_loss[trace]["Rl"].append(env.Rl)
         cumulative_reward += reward
 
         if done:

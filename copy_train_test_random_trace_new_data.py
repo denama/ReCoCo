@@ -20,29 +20,22 @@ from conf_dict_util import conf_to_dict
 from best_algs import one_conf_models_dict
 
 
-tensorboard_dir = f"./tensorboard_logs/random_norway_max_350_400/"
-save_subfolder = f"random_norway_max_350_400"
-suffix = f"random_norway_max_350_400"
+tensorboard_dir = f"./tensorboard_logs/random_norway_max_400_1000/"
+save_subfolder = f"random_norway_max_400_1000"
+suffix = f"random_norway_max_400_1000"
 
 #If we want to train on a list, we specify the trace list
 trace_set = \
-['./new_data/Norway_3G_data_json/tram_2011-01-04_0820CET.json',
- './new_data/Norway_3G_data_json/ferry_2010-09-21_1622CEST.json',
- './new_data/Norway_3G_data_json/metro_2010-09-14_2303CEST.json',
- './new_data/Norway_3G_data_json/bus_2010-09-30_1113CEST.json',
- './new_data/Norway_3G_data_json/ferry_2010-09-29_0702CEST.json',
- './new_data/Norway_3G_data_json/car_2011-04-21_1135CEST.json',
- './new_data/Norway_3G_data_json/tram_2010-12-22_0826CET.json',
- './new_data/Norway_3G_data_json/ferry_2011-01-31_1830CET.json',
- './new_data/Norway_3G_data_json/ferry_2010-09-23_1001CEST.json',
- './new_data/Norway_3G_data_json/bus_2010-09-30_1058CEST.json',
- './new_data/Norway_3G_data_json/tram_2010-12-09_1222CET.json',
- './new_data/Norway_3G_data_json/bus_2011-01-29_1423CET.json',
- './new_data/Norway_3G_data_json/train_2011-02-14_0644CET.json',
- './new_data/Norway_3G_data_json/ferry_2010-09-22_0702CEST.json',
- './new_data/Norway_3G_data_json/ferry_2010-09-20_1542CEST.json',
- './new_data/Norway_3G_data_json/car_2011-02-10_1611CET.json',
- './new_data/Norway_3G_data_json/bus_2010-09-28_1407CEST.json']
+['./new_data/Norway_3G_data_json/bus_2010-11-10_1424CET.json',
+ './new_data/Norway_3G_data_json/bus_2010-09-30_1114CEST.json',
+ './new_data/Norway_3G_data_json/bus_2010-09-29_1622CEST.json',
+ './new_data/Norway_3G_data_json/ferry_2011-02-01_0740CET.json',
+ './new_data/Norway_3G_data_json/ferry_2011-02-01_1639CET.json',
+ './new_data/Norway_3G_data_json/ferry_2011-02-01_0629CET.json',
+ './new_data/Norway_3G_data_json/bus_2010-09-29_1823CEST.json',
+ './new_data/Norway_3G_data_json/ferry_2011-02-01_0840CET.json',
+ './new_data/Norway_3G_data_json/bus_2010-09-29_0852CEST.json']
+
 
 #If we want to train on a whole directory
 take_all_from_directory = False
@@ -66,8 +59,8 @@ continue_training = True
 if not continue_training:
     start_counter = 0
 else:
-    model_to_continue_from = "410000.zip" #last saved model
-    start_counter = 41 #num of episodes that the model has been trained on (NOT the next episode!)
+    model_to_continue_from = "580000.zip" #last saved model
+    start_counter = 58 #num of episodes that the model has been trained on (NOT the next episode!)
 seed = 1
 
 save_dir = "./data"

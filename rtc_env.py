@@ -54,7 +54,8 @@ class GymEnv(gym.Env):
                  normalize_states=True,
                  reward_profile=0,
                  delay_states=True,
-                 random_trace=False
+                 random_trace=False,
+                 trace_set=[],
                  ):
         super(GymEnv, self).__init__()
 
@@ -65,9 +66,10 @@ class GymEnv(gym.Env):
         self.reward_profile = reward_profile
         self.delay_states = delay_states
         self.random_trace = random_trace
-
-        trace_dir = os.path.join(os.path.dirname(__file__), "traces")
-        self.trace_set = glob.glob(f'{trace_dir}/**/*.json', recursive=True)
+        self.trace_set = trace_set
+        
+        
+        # print("Trace set: ", self.trace_set)
 
         #Actions - actions can be from 0 to 1 (continuous actions) - trying to rescale to -1 to 1
         self.action_dim = 1
@@ -121,7 +123,7 @@ class GymEnv(gym.Env):
         else:
             self.current_trace = self.input_trace
             
-        # print("Working with trace", self.current_trace)
+        print("Working with trace", self.current_trace)
 
         #Do the simulation with the current trace
         logging.info(f"{self.current_trace.split('/')[-1]}")

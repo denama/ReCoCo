@@ -4,8 +4,12 @@ Virtual env:
 
 1. conda activate venv_RL_rtc
 
+To train:
+- train_test_random_trace_new_data.py - training on given dataset (traces in random order)
+- test_env.py - testing trained model on multiple traces (given as a list)
 
+To analyze output (rates_delay_loss_..):
 simulation_analysis/
-analyze_rates_delay_loss
-analyze_rates_delay_loss_new_data
+- analyze_rates_delay_loss_new_data: if we tested on one trace multiple times rates_delay_loss[trace][m]
+- analyze_rates_delay_loss_all_traces_new_data: if we 
 
