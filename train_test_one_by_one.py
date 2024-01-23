@@ -45,7 +45,6 @@ seed = 4
 num_timesteps = input_conf["num_timesteps"]
 num_episodes = 30 #triple the training on each trace
 
-
 save_dir = "./data"
 rates_delay_loss = {}
 

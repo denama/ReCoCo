@@ -123,7 +123,7 @@ class GymEnv(gym.Env):
         else:
             self.current_trace = self.input_trace
             
-        print("Working with trace", self.current_trace)
+        # print("Working with trace", self.current_trace)
 
         #Do the simulation with the current trace
         logging.info(f"{self.current_trace.split('/')[-1]}")
@@ -270,11 +270,13 @@ class GymEnv(gym.Env):
         
         if (bandwidth <= 0.00001):
             bandwidth_util = 0
+            U_logging = -1
         else:
             bandwidth_util = receiving_rate / bandwidth
+            U_logging = round(receiving_rate / bandwidth, 2)
 
         logging.info(f"Sending rate: {sending_rate}, Receiving rate: {receiving_rate}, "
-                     f"bandwidth: {bandwidth}, delay: {delay}, U: {round(receiving_rate / bandwidth, 2)}, "
+                     f"bandwidth: {bandwidth}, delay: {delay}, U: {U_logging}, "
                      f"loss ratio: {loss_ratio}")
 
         #forbidden values - forse reward -1

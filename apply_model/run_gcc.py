@@ -1,7 +1,13 @@
 import os
 import pickle
 import sys
-sys.path.append("~/RL_rtc/gym_folder/alphartc_gym/")
+import time
+import datetime
+
+
+sys.path.append("/home/det_user/dmarkudova/RL_rtc/")
+sys.path.append("/home/dena/Documents/Gym_RTC/gym-example/")
+
 
 from gym_folder.alphartc_gym import gym_file
 
@@ -10,33 +16,34 @@ from apply_model import BandwidthEstimator_hrcc
 from apply_model import BandwidthEstimator_gcc
 
 from collections import defaultdict
-print("Im here")
+
+
 BWE_gcc = BandwidthEstimator_gcc.GCCEstimator()
-print("I passed BEW_gcc")
 bandwidth_prediction_gcc, _ = BWE_gcc.get_estimated_bandwidth()
-print("I passed 2")
-
-
-
 gym_env = gym_file.Gym()
-print("I created env")
 
-# current_trace = "/home/dena/Documents/Gym_RTC/gym-example/traces/WIRED_900kbps.json"
-trace_sample = "./traces/4G_500kbps.json"
-# trace_sample = "./new_data/NY_4G_data_json/Ferry_Ferry5.json"
 
 
 def listdir_fullpath(d):
-    return [os.path.join(d, f) for f in os.listdir(d)]
+    return [os.path.join(d, f) for f in os.listdir(d) if ".json" in f]
 
-# list_of_traces = listdir_fullpath("../traces")
-list_of_traces = [trace_sample]
+list_of_traces = listdir_fullpath("../new_data/Norway_3G_data_json/")
+# list_of_traces = listdir_fullpath("../new_data/logs_all_4G_Ghent_json/")
 
 for current_trace in list_of_traces:
     print("Current trace:", current_trace)
 
     trace_name = current_trace.split("/")[-1].split(".")[0]
     print("Trace name", trace_name)
+    
+    start = time.time()
+    print("Starting at time: ", datetime.datetime.now())
+    
+    if os.path.exists(f"results_gcc/norway/rates_delay_loss_gcc_{trace_name}.pickle") \
+    or trace_name == "metro_2010-09-14_1038CEST" \
+    or trace_name == "metro_2010-10-18_0951CEST":
+        continue
+    
     step_time = 200
     list_of_packets = []
     rates_delay_loss = defaultdict(list)
@@ -53,7 +60,7 @@ for current_trace in list_of_traces:
     bandwidth_prediction_gcc, _ = BWE_gcc.get_estimated_bandwidth()
 
     #ON STEP
-    for i in range(5000):
+    for i in range(80000):
         packet_list, done = gym_env.step(bandwidth_prediction_gcc)
         for pkt in packet_list:
             BWE_gcc.report_states(pkt)
@@ -78,12 +85,14 @@ for current_trace in list_of_traces:
 
         if done:
             print(f"DONE WITH THE TRACE. I reached i {i}")
+            end = time.time()
+            print("Time elapsed: ", end-start, "seconds")
+            print("-----------------------------------------")
             break
 
-    with open(f"results_gcc/rates_delay_loss_gcc_{trace_name}.pickle", "wb") as f:
+    with open(f"results_gcc/norway/rates_delay_loss_gcc_{trace_name}.pickle", "wb") as f:
         pickle.dump(rates_delay_loss, f)
 
-    print(rates_delay_loss)
 
 
 

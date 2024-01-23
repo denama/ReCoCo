@@ -2,20 +2,7 @@ import torch
 import itertools
 import pandas as pd
 
-
-traces = [
-          # "./traces/WIRED_900kbps.json",
-          # "./traces/WIRED_35mbps.json",
-          # "./traces/WIRED_200kbps.json", 
-          # "./traces/4G_700kbps.json",
-          # "./traces/4G_3mbps.json",
-          # "./traces/4G_500kbps.json",
-          # "./traces/5G_12mbps.json",
-          # "./traces/5G_13mbps.json",
-          # "./traces/trace_300k.json", 
-          # "./big_trace/big_trace2.json",
-           ]
-
+traces = []
 
 input_conf = {
     "num_timesteps": 10000,
