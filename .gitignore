@@ -20,3 +20,9 @@ logs/
 !/.gitignore
 new_data/logs_all_4G_Ghent/
 new_data/NY_4G_data/
+big_trace/
+simulation_analysis/
+new_data/
+legacy/
+deep_rl/
+apply_model/results_*
