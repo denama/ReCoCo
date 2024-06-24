@@ -2,6 +2,12 @@
 **ReCoCo** is a Reinforcement-learning based Congestion Control algorithm for Real-time applications (video conferencing, cloud gaming).
 
 ## System overview
+The system at runtime:
+
+![The system at runtime](scheme/congestion_control.png)
+
+The system at training time:
+
 ![Schema of the system](scheme/scheme_rl_system.drawio3.drawio.png)
 
 ## Scripts
