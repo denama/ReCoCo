@@ -5,24 +5,25 @@
 ![Schema of the system](scheme/scheme_rl_system.drawio3.drawio.png)
 
 ## Scripts
+Here is an outline of the main scripts used to train and test the various models:
+- conf_dict_new: configure all parameters to start training (e.g. number of timesteps, algorithm, saving paths and other parameters)
+- trace_lists: specifies different groupings of traces in lists for easier use in the other scripts (e.g. norway_traces, ghent_traces, low_bandwidth_traces)
 
-- train_test_one_trace: train on one trace for 10000 samples, 10 times (fake episodes). Every episode save model, test and record reward (rates_delay_loss[trace][m]). You specify the trace and the algorithm and the number of environments for vectorization (note: TD3 does not support vectorization)
-- mp+train_test_one_trace: try different parameters and run with multiprocessing
-- train_test_one_by_one: train on one trace for X timesteps, Y times (fake episodes). Then save model and continue training with another tracefile
+- train_new_data: reads the configuration from *conf_dict_new* and employs training
+- test_env: employs testing - needs arguments (model type and episode number; e.g. random_low_bandwidth 80000) 
+- test_env_non_testable_traces: test models without running GCC in parallel, for the traces that do not support GCC
 
-- train_vec_env: just training
-- test_env: just testing - load any model you want
-- main_apply_sb: to test policy with stable_baselines evaluator function
+- rtc_env: RL environment (exactly following Gym guidelines)
 
-- check_gym_env_original: legacy, keep for debugging stuff
-- tensorboard_trial: legacy, keep for debugging stuff
+## Paper
+If you use this code, please cite the following paper:
 
-- rtc_env_sb: environment exactly following Gym guidelines, to use with stable_baselines
-
-
-- plotting_sb: to explore plotting, finish
-
-- rtc_env: legacy, works with old main code (without stable baselines)
-- main: legacy, use PPO implementation in deep_rl/ and rtc_env
-- main_apply_model: legacy, test model from PPO implementation in deep_rl/ and rtc_env
+@inproceedings{markudova2023recoco,
+  title={ReCoCo: Reinforcement learning-based Congestion control for Real-time applications},
+  author={Markudova, Dena and Meo, Michela},
+  booktitle={2023 IEEE 24th International Conference on High Performance Switching and Routing (HPSR)},
+  pages={68--74},
+  year={2023},
+  organization={IEEE}
+}
 
