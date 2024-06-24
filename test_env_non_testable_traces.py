@@ -59,8 +59,8 @@ if not curr:
     model_folder = f"./data/{model_type}/{model_num}"
     suffix = f"{model_type}_ep{episode_num}"
 else:
-    model_folder = f"./data/{model_type}/curr2/{model_num}"
-    suffix = f"{model_type}_ep{episode_num}_curr2"
+    model_folder = f"./data/{model_type}/curr/{model_num}"
+    suffix = f"{model_type}_ep{episode_num}_curr"
 
 #---------------------------------------------------------------
 
@@ -78,11 +78,11 @@ tuned = False
 reward_profile = 0
 
 #If pickle already exists, continue filling it out
-pickle_path = f"./output/rates_delay_loss_test_{suffix}.pickle"
+pickle_path = f"./output/rates_delay_loss_test_no_gcc_{suffix}.pickle"
 if os.path.exists(pickle_path):
     print("Pickle already exists, will continue writing there: ", suffix)
     
-    with open(f"./output/rates_delay_loss_test_{suffix}.pickle", "rb") as f:
+    with open(f"./output/rates_delay_loss_test_no_gcc_{suffix}.pickle", "rb") as f:
         rates_delay_loss = pickle.load(f)
 else:
     print(f"Test output doesnt exist, will create it...: {suffix}")
@@ -102,11 +102,11 @@ for i in range(len(traces)):
     rates_delay_loss[trace] = defaultdict(list)
     
     
-    #If GCC results for that trace do not exist, do not test for it
+    #If GCC results for that trace exist, do not test for it
     trace_name = parse_trace_name_from_path(trace)
     dataset = parse_dataset_from_path(trace)
     pickle_path_gcc = f"./apply_model/results_gcc/{dataset}/rates_delay_loss_gcc_{trace_name}.pickle"
-    if not os.path.exists(pickle_path_gcc):
+    if os.path.exists(pickle_path_gcc):
         print(f"GCC run doesn't exist or path wrong for trace {trace_name}, continuing..")
         continue
 
@@ -155,5 +155,5 @@ for i in range(len(traces)):
             obs = env.reset()
             break
 
-    with open(f"./output/rates_delay_loss_test_{suffix}.pickle", "wb") as f:
+    with open(f"./output/rates_delay_loss_test_no_gcc_{suffix}.pickle", "wb") as f:
         pickle.dump(rates_delay_loss, f)

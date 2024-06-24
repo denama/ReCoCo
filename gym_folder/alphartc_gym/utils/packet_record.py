@@ -145,8 +145,8 @@ class PacketRecord:
             missing_nbytes = loss_count * average_bytes
             total_nbytes = nbytes + missing_nbytes
 
-            if loss_count > 0:
-                logging.info(f"Received: {nbytes}, missing {missing_nbytes}, total {total_nbytes}")
+            # if loss_count > 0:
+            #     logging.info(f"Received: {nbytes}, missing {missing_nbytes}, total {total_nbytes}")
 
             # TODO interpolate better using ssrc
             # sum of bytes list is sometimes smaller than nbytes_sent - because packet_list is ahead in time

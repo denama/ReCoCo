@@ -9,6 +9,7 @@ import glob
 import logging
 import torch
 import pandas as pd
+import datetime
 
 import gym
 from gym import spaces
@@ -27,6 +28,9 @@ MIN_BANDWIDTH_MBPS = 0.01
 LOG_MAX_BANDWIDTH_MBPS = np.log(MAX_BANDWIDTH_MBPS)
 LOG_MIN_BANDWIDTH_MBPS = np.log(MIN_BANDWIDTH_MBPS)
 # print(f"MIN bandwidth log {LOG_MIN_BANDWIDTH_MBPS}, MAX bandwidth log {LOG_MAX_BANDWIDTH_MBPS}")
+dict_trace_len = pd.read_pickle("./dict_trace_len.pickle")
+
+# random.seed(42)
 
 #Normalize value between 0 and 1 using log - ONLY TO INPUT BPS!
 def linear_to_log(value):
@@ -70,6 +74,7 @@ class GymEnv(gym.Env):
         
         
         # print("Trace set: ", self.trace_set)
+        print("Gym is being initialized ..................")
 
         #Actions - actions can be from 0 to 1 (continuous actions) - trying to rescale to -1 to 1
         self.action_dim = 1
@@ -122,15 +127,23 @@ class GymEnv(gym.Env):
             self.current_trace = random.choice(self.trace_set)
         else:
             self.current_trace = self.input_trace
-            
-        # print("Working with trace", self.current_trace)
 
         #Do the simulation with the current trace
-        logging.info(f"{self.current_trace.split('/')[-1]}")
-        
         self.gym_env.reset(trace_path=self.current_trace,
                            report_interval_ms=self.step_time,
                            duration_time_ms=0)
+        
+        #Duration in seconds
+        self.duration_sec = dict_trace_len[self.current_trace]["duration"]
+        #Duration in minutes
+        self.duration_min = dict_trace_len[self.current_trace]["duration"]/60
+        self.duration_msec = dict_trace_len[self.current_trace]["duration"]*1000
+        self.timesteps_in_simulation = self.duration_msec/200
+        
+        # print("Gym is resetting...........")
+        print(f"[{datetime.datetime.now()}] Resetting with trace {self.current_trace}, duration_min {round(self.duration_min,2)}, timesteps in simulation {self.timesteps_in_simulation}")
+
+        # logging.info(f"Resetting with trace {self.current_trace}, duration_min {round(self.duration_min,2)}, timesteps in simulation {self.timesteps_in_simulation} ")
 
         #Initialize a new **empty** packet record
         self.packet_record = PacketRecord()
@@ -176,6 +189,9 @@ class GymEnv(gym.Env):
 
         # run the action
         packet_list, done = self.gym_env.step(bandwidth_prediction)
+        # if done:
+        #     print(f"[{datetime.datetime.now()}] Done with trace {self.current_trace}, duration_sec {self.duration_sec}, duration_min {round(self.duration_min,2)}, timesteps in dena simulation {self.timesteps_in_simulation}, timesteps in epoch {self.time_step_in_epoch}")
+        #       # logging.info(f"done {done}")
         # logging.info(f"Packet list contains {packet_list}")
         # logging.info(f"Len packet list {len(packet_list)}")
         pkt_counter = 0
@@ -253,6 +269,9 @@ class GymEnv(gym.Env):
         reward = self.calculate_reward()
 
         self.time_step_in_epoch += 1
+        if self.time_step_in_epoch == 1:
+            print(f"[{datetime.datetime.now()}] {self.time_step_in_epoch}")
+            # logging.info(f"[{datetime.datetime.now()}] {self.time_step_in_epoch}")
 
         return np.array(self.state), reward, done, {}
 
@@ -275,9 +294,9 @@ class GymEnv(gym.Env):
             bandwidth_util = receiving_rate / bandwidth
             U_logging = round(receiving_rate / bandwidth, 2)
 
-        logging.info(f"Sending rate: {sending_rate}, Receiving rate: {receiving_rate}, "
-                     f"bandwidth: {bandwidth}, delay: {delay}, U: {U_logging}, "
-                     f"loss ratio: {loss_ratio}")
+        # logging.info(f"Sending rate: {sending_rate}, Receiving rate: {receiving_rate}, "
+        #              f"bandwidth: {bandwidth}, delay: {delay}, U: {U_logging}, "
+        #              f"loss ratio: {loss_ratio}")
 
         #forbidden values - forse reward -1
         if (delay < 0) \
