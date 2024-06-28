@@ -24,4 +24,5 @@ big_trace/
 simulation_analysis/
 legacy/
 deep_rl/
-apply_model/results_*
+apply_model/results_hrcc
+final_models/readme_models.txt
