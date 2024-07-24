@@ -24,7 +24,8 @@ Here is an outline of the main scripts used to train and test the various models
 
 ## Quick guide
 First, create a virtual environment in Python and install the packages using the *requirements.txt* file.
-Then you can test the various models from the folder *final_models* by running *test_env_github.py* with the name of the model as an argument. This tests the model on *all* available traces in the *new_data* folder. To specify a specific list of traces to test on, modify the *traces* parameter in *test_env_github.py*. You can use predefined trace lists from *trace_lists.py*
+Then you can test the various models from the folder *final_models* by running *test_env_github.py* with the name of the model as an argument. This tests the model on *all* available traces in the *new_data* folder. To specify a specific list of traces to test on, modify the *traces* parameter in *test_env_github.py*. You can use predefined trace lists from *trace_lists.py*.
+
 The output is a pickle file that is saved in *output_github*, which contains a dictionary with data such as bandwidth prediction, sending rate, receiving rate, delay, loss ratio and reward, for each time step in the simulation.
 
 
